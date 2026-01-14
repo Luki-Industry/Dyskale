@@ -20,6 +20,7 @@
 *.rar
 
 HytaleServer.jar
+gradle.properties
 
 # virtual machine crash logs
 hs_err_pid*
