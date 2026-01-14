@@ -14,30 +14,32 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 ## 📋 Prérequis
 
 - **Java 25** (JDK-25)
-- **Maven 3.9+** (wrapper inclus)
+- **Gradle 8.0+**
 - **Serveur Hytale** avec HytaleServer.jar
 - **Bot Discord** avec token
 
 ## 🚀 Installation
 
-### 1. Installer l'API Hytale
+### 1. Initialiser l'API et compiler
 
 ```powershell
-# Placer HytaleServer.jar à la racine du projet
-.\setup-hytale-api.ps1
+# Copie automatique l'API et compile le projet
+gradle build
 ```
 
-### 2. Compiler le plugin
+Le JAR sera généré dans `build/libs/Hytale-Plugin-1.0.0.jar`.
+
+### 2. Lancer le serveur de test (Optionnel)
+
+Possibilité de lancer un serveur Hytale de test directement depuis le projet :
 
 ```powershell
-.\mvnw.cmd clean package
+gradle runHytaleServer
 ```
 
-Le JAR sera généré dans `target/Hytale-Plugin-1.0.0.jar` (~13 MB).
+### 3. Installation sur un serveur dédié
 
-### 3. Installation sur le serveur
-
-1. Copier `target/Hytale-Plugin-1.0.0.jar` dans le dossier `mods/` du serveur
+1. Copier `build/libs/Hytale-Plugin-1.0.0.jar` dans le dossier `mods/` du serveur
 2. Démarrer le serveur
 3. Arrêter le serveur (génération de la config)
 4. Configurer `mods/LukienLive_DiscordLink/config.json`

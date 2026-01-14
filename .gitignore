@@ -19,7 +19,7 @@
 *.tar.gz
 *.rar
 
-# Exception: Garder HytaleServer.jar (API nécessaire)
+# Exception: Garder HytaleServer.jar (API nï¿½cessaire)
 !HytaleServer.jar
 
 # virtual machine crash logs
@@ -41,3 +41,9 @@ mods/
 
 # History
 .history/
+
+# Gradle
+.gradle
+build/
+run/
+/libs/HytaleServer.jar

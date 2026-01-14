@@ -1,0 +1,153 @@
+plugins {
+    id 'java'
+    id("com.gradleup.shadow") version "9.3.1"
+    id 'idea'
+}
+
+group = 'com.lukienlive.hytale'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly files('libs/HytaleServer.jar')
+
+    implementation 'net.dv8tion:JDA:5.0.0-alpha.19'
+    implementation 'org.slf4j:slf4j-nop:2.0.17'
+    implementation 'com.google.code.gson:gson:2.13.2'
+
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
+}
+
+def installHytaleApi = { ->
+    def libsDir = file('libs')
+    if (!libsDir.exists()) {
+        libsDir.mkdirs()
+    }
+
+    if (new File(libsDir, 'HytaleServer.jar').exists()) {
+        return true
+    }
+
+    def possiblePaths = []
+    def appData = System.getenv("APPDATA")
+
+    if (appData) {
+        possiblePaths.add(new File(appData, "Hytale/install/release/package/game/latest/Server/HytaleServer.jar"))
+    }
+    possiblePaths.add(file("HytaleServer.jar"))
+    possiblePaths.add(file("../HytaleServer.jar"))
+
+    def sourceFile = possiblePaths.find { it.exists() }
+
+    if (sourceFile) {
+        println "Serveur trouvé: ${sourceFile}"
+        copy {
+            from sourceFile
+            into libsDir
+            rename { 'HytaleServer.jar' }
+        }
+        println "API Hytale installée dans le dossier libs"
+        return true
+    }
+    return false
+}
+
+if (!file('libs/HytaleServer.jar').exists()) {
+    installHytaleApi()
+}
+
+tasks.register('setupHytaleApi') {
+    group = 'hytale'
+    description = 'Copie HytaleServer.jar dans le dossier libs'
+
+    doLast {
+        if (file('libs/HytaleServer.jar').exists()) {
+            println "HytaleServer.jar est déjà présent dans libs/"
+            return
+        }
+
+        if (!installHytaleApi()) {
+            println "\nHytaleServer.jar non trouvé automatiquement."
+            println "Veuillez copier HytaleServer.jar dans le dossier 'libs' du projet."
+            throw new GradleException("HytaleServer.jar introuvable")
+        }
+    }
+}
+
+shadowJar {
+    archiveBaseName.set('Hytale-Plugin')
+    archiveClassifier.set('')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    dependsOn 'setupHytaleApi'
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+tasks.register('runHytaleServer', JavaExec) {
+    dependsOn 'shadowJar'
+    group = 'hytale'
+    description = 'Runs the Hytale server for testing'
+    classpath = files('libs/HytaleServer.jar')
+    mainClass = 'com.hypixel.hytale.Main'
+
+    def userHome = System.getProperty("user.home")
+    def assetsPath = "${userHome}\\AppData\\Roaming\\Hytale\\install\\release\\package\\game\\latest\\Assets.zip"
+
+    args = [
+        "--allow-op",
+        "--disable-sentry",
+        "--assets", assetsPath
+    ]
+
+    jvmArgs("-Xmx2G")
+
+    workingDir = project.file("run")
+
+    doFirst {
+        if (!workingDir.exists()) {
+            workingDir.mkdirs()
+        }
+
+        def modsDir = new File(workingDir, "mods")
+        if (!modsDir.exists()) {
+            modsDir.mkdirs()
+        }
+
+        // Clean old jars
+        modsDir.listFiles()?.each { file ->
+            if (file.name.startsWith("Hytale-Plugin") && file.name.endsWith(".jar")) {
+                file.delete()
+            }
+        }
+
+        // Copy new jar
+        copy {
+            from shadowJar.archiveFile
+            into modsDir
+        }
+    }
+
+    standardInput = System.in
+}
+build.dependsOn shadowJar
