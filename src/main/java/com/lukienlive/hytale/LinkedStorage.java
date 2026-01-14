@@ -16,10 +16,12 @@ public class LinkedStorage {
 
     public static class PendingLink {
         public final String playerName;
+        public final String playerUuid;
         public final long timestamp;
 
-        public PendingLink(String playerName) {
+        public PendingLink(String playerName, String playerUuid) {
             this.playerName = playerName;
+            this.playerUuid = playerUuid;
             this.timestamp = System.currentTimeMillis();
         }
 
@@ -44,28 +46,28 @@ public class LinkedStorage {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    public void link(String token, String discordId, String hytalePlayer) {
-        map.put(hytalePlayer, discordId);
+    public void link(String playerUuid, String discordId) {
+        map.put(playerUuid, discordId);
         save();
     }
 
-    public String getDiscordId(String hPlayer) {
-        return map.get(hPlayer);
+    public String getDiscordId(String playerUuid) {
+        return map.get(playerUuid);
     }
 
-    public String generateLinkCode(String playerName) {
+    public String generateLinkCode(String playerName, String playerUuid) {
         // Générer un code aléatoire de 6 caractères
         String code = java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        pendingLinks.put(code, new PendingLink(playerName));
+        pendingLinks.put(code, new PendingLink(playerName, playerUuid));
         return code;
     }
 
-    public String consumeLinkCode(String code) {
+    public PendingLink consumeLinkCode(String code) {
         PendingLink pending = pendingLinks.remove(code.toUpperCase());
         if (pending == null || pending.isExpired()) {
             return null;
         }
-        return pending.playerName;
+        return pending;
     }
 
     public void cleanExpiredCodes() {

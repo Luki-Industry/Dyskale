@@ -79,19 +79,19 @@ public class DiscordBot extends ListenerAdapter {
             String discordId = event.getAuthor().getId();
             
             // Vérifier si c'est un code de liaison valide
-            String playerName = Main.INSTANCE.storage.consumeLinkCode(message);
+            var pending = Main.INSTANCE.storage.consumeLinkCode(message);
             
-            if (playerName != null) {
+            if (pending != null) {
                 // Code valide ! Lier le compte
-                Main.INSTANCE.storage.link(message, discordId, playerName);
+                Main.INSTANCE.storage.link(pending.playerUuid, discordId);
                 
                 event.getChannel().sendMessage(
                     "✅ **Compte lié avec succès!**\n\n" +
-                    "Votre compte Discord est maintenant lié à: `" + playerName + "`\n" +
+                    "Votre compte Discord est maintenant lié à: `" + pending.playerName + "`\n" +
                     "Vous pouvez maintenant rejoindre le serveur Hytale!"
                 ).queue();
                 
-                Main.INSTANCE.getLogger().atInfo().log("Compte lié: " + playerName + " <-> " + event.getAuthor().getAsTag() + " (" + discordId + ")");
+                Main.INSTANCE.getLogger().atInfo().log("Compte lié: " + pending.playerName + " (" + pending.playerUuid + ") <-> " + event.getAuthor().getAsTag() + " (" + discordId + ")");
             } else {
                 // Code invalide ou expiré
                 event.getChannel().sendMessage(
