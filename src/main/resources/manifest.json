@@ -1,0 +1,14 @@
+{
+  "Group": "LukienLive",
+  "Name": "DiscordLink",
+  "Version": "1.0.0",
+  "Description": "Plugin pour synchroniser les rôles Discord et lier les comptes Discord/Hytale",
+  "Main": "com.lukienlive.hytale.Main",
+  "Authors": [
+    {
+      "Name": "Luki"
+    }
+  ],
+  "ServerVersion": ">=0.0.1",
+  "Dependencies": {}
+}
