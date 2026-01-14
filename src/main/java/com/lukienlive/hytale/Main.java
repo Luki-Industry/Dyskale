@@ -27,8 +27,7 @@ public class Main extends JavaPlugin {
 
         // Créer le dossier de configuration si nécessaire
         File dataFolder = getDataDirectory().toFile();
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs();
+        if (!dataFolder.exists() && !dataFolder.mkdirs()) {
             getLogger().atInfo().log("Dossier de configuration créé: " + dataFolder.getAbsolutePath());
         }
 

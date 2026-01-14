@@ -1,9 +1,12 @@
 package com.lukienlive.hytale;
 
 import com.google.gson.*;
+import com.lukienlive.hytale.domain.PendingLink;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LinkedStorage {
@@ -13,22 +16,6 @@ public class LinkedStorage {
 
     // Codes de liaison temporaires : code -> {playerName, timestamp}
     private final Map<String, PendingLink> pendingLinks = new ConcurrentHashMap<>();
-
-    public static class PendingLink {
-        public final String playerName;
-        public final String playerUuid;
-        public final long timestamp;
-
-        public PendingLink(String playerName, String playerUuid) {
-            this.playerName = playerName;
-            this.playerUuid = playerUuid;
-            this.timestamp = System.currentTimeMillis();
-        }
-
-        public boolean isExpired() {
-            return System.currentTimeMillis() - timestamp > 5 * 60 * 1000; // 5 minutes
-        }
-    }
 
     public LinkedStorage(File file) {
         this.file = file;
@@ -57,7 +44,7 @@ public class LinkedStorage {
 
     public String generateLinkCode(String playerName, String playerUuid) {
         // Générer un code aléatoire de 6 caractères
-        String code = java.util.UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        String code = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         pendingLinks.put(code, new PendingLink(playerName, playerUuid));
         return code;
     }
