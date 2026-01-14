@@ -1,5 +1,8 @@
-package com.lukienlive.hytale;
+package com.lukienlive.hytale.discord;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.lukienlive.hytale.Main;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -7,6 +10,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
@@ -14,23 +18,29 @@ import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+@Singleton
 public class DiscordBot extends ListenerAdapter {
 
     private JDA jda;
     private final BlockingQueue<String> consoleQueue = new LinkedBlockingQueue<>();
     private Thread consoleSenderThread;
 
+    @Inject
+    private Logger logger;
+
     public boolean start() {
         try {
             String token = Main.INSTANCE.getConfig().get().getString("Discord_token");
             if (token == null || token.isEmpty()) {
-                Main.INSTANCE.getLogger().atSevere().log("Token Discord invalide ou manquant dans config.json");
-                Main.INSTANCE.getLogger().atWarning().log("Veuillez configurer votre token Discord dans le fichier config.json");
+                this.logger.log(Level.SEVERE, "Token Discord invalide ou manquant dans config.json");
+                this.logger.log(Level.WARNING, "Veuillez configurer votre token Discord dans le fichier config.json");
                 return false;
             }
-            
-            Main.INSTANCE.getLogger().atInfo().log("Connexion au bot Discord...");
+
+            this.logger.log(Level.INFO, "Connexion au bot Discord...");
             
             // createLight désactive les caches inutilisés pour optimiser la mémoire
             // GUILD_MESSAGES pour recevoir les messages dans les serveurs
@@ -42,18 +52,17 @@ public class DiscordBot extends ListenerAdapter {
                     GatewayIntent.DIRECT_MESSAGES)
                 .addEventListeners(this)
                 .build();
-                
-            Main.INSTANCE.getLogger().atInfo().log("Bot Discord connecté avec succès!");
-            
-            // Démarrer le thread d'envoi des logs vers le salon console
+
+            this.logger.log(Level.INFO, "Bot Discord connecté avec succès!");
+
             startConsoleSender();
             
             return true;
-        } catch (net.dv8tion.jda.api.exceptions.InvalidTokenException e) {
-            Main.INSTANCE.getLogger().atSevere().log("Token Discord invalide! Vérifiez votre token dans config.json");
+        } catch (InvalidTokenException e) {
+            this.logger.log(Level.SEVERE, "Token Discord invalide ou manquant dans config.json",e);
             return false;
         } catch (Exception e) {
-            Main.INSTANCE.getLogger().atSevere().withCause(e).log("Erreur lors de la connexion au bot Discord");
+            this.logger.log(Level.SEVERE, "Erreur lors de la connexion au bot Discord", e);
             return false;
         }
     }
@@ -92,8 +101,8 @@ public class DiscordBot extends ListenerAdapter {
                     "Votre compte Discord est maintenant lié à: `" + pending.getPlayerName() + "`\n" +
                     "Vous pouvez maintenant rejoindre le serveur Hytale!"
                 ).queue();
-                
-                Main.INSTANCE.getLogger().atInfo().log("Compte lié: " + pending.getPlayerName() + " (" + pending.getPlayerUuid() + ") <-> " + event.getAuthor().getAsTag() + " (" + discordId + ")");
+
+                this.logger.log(Level.INFO, "Compte Discord lié: " + pending.getPlayerName() + " (" + pending.getPlayerUuid() + ") <-> " + event.getAuthor().getAsTag() + " (" + discordId + ")");
             } else {
                 // Code invalide ou expiré
                 event.getChannel().sendMessage(
@@ -217,10 +226,10 @@ public class DiscordBot extends ListenerAdapter {
 
     private void executeServerCommand(String command, MessageReceivedEvent event) {
         // Log de la commande
-        Main.INSTANCE.getLogger().atInfo().log("Commande Discord reçue de " + event.getAuthor().getAsTag() + ": " + command);
+        this.logger.log(Level.INFO, "Commande Discord reçue de " + event.getAuthor().getAsTag() + ": " + command);
         
         // Réagir pour indiquer que la commande est reçue
-        event.getMessage().addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⏳")).queue();
+        event.getMessage().addReaction(Emoji.fromUnicode("⏳")).queue();
         
         try {
             // Créer un sender Discord personnalisé
@@ -229,21 +238,22 @@ public class DiscordBot extends ListenerAdapter {
             // Exécuter la commande via CommandManager
             var commandManager = com.hypixel.hytale.server.core.command.system.CommandManager.get();
             commandManager.handleCommand(sender, command).whenComplete((result, error) -> {
-                event.getMessage().removeReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⏳")).queue();
+                event.getMessage().removeReaction(Emoji.fromUnicode("⏳")).queue();
                 
                 if (error != null) {
-                    event.getMessage().addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("❌")).queue();
+                    event.getMessage().addReaction(Emoji.fromUnicode("❌")).queue();
                     event.getChannel().sendMessage("❌ Erreur: " + error.getMessage()).queue();
-                    Main.INSTANCE.getLogger().atSevere().withCause(error).log("Erreur lors de l'exécution de la commande Discord");
+
+                    this.logger.log(Level.SEVERE, "Erreur lors de l'exécution de la commande Discord", error);
                 } else {
-                    event.getMessage().addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("✅")).queue();
+                    event.getMessage().addReaction(Emoji.fromUnicode("✅")).queue();
                 }
             });
         } catch (Exception e) {
             event.getMessage().removeReaction(Emoji.fromUnicode("⏳")).queue();
             event.getMessage().addReaction(Emoji.fromUnicode("❌")).queue();
             event.getChannel().sendMessage("❌ Erreur: " + e.getMessage()).queue();
-            Main.INSTANCE.getLogger().atSevere().withCause(e).log("Erreur lors de l'exécution de la commande Discord");
+            this.logger.log(Level.SEVERE, "Erreur lors de l'exécution de la commande Discord", e);
         }
     }
 
@@ -253,19 +263,15 @@ public class DiscordBot extends ListenerAdapter {
                 consoleSenderThread.interrupt();
             }
 
-            if (jda == null) {
-                return;
-            }
-
             jda.shutdown();
             if (!jda.awaitShutdown(Duration.ofSeconds(30))) {
                 jda.shutdownNow();
             }
 
-            Main.INSTANCE.getLogger().atInfo().log("Bot Discord déconnecté avec succès.");
+            this.logger.log(Level.INFO, "Bot Discord déconnecté avec succès.");
         }
         catch (InterruptedException e) {
-            Main.INSTANCE.getLogger().atWarning().log("La fermeture du bot Discord a été interrompue");
+            this.logger.log(Level.WARNING, "La fermeture du bot Discord a été interrompue", e);
         }
     }
 }

@@ -1,4 +1,6 @@
-package com.lukienlive.hytale;
+package com.lukienlive.hytale.discord;
+
+import com.lukienlive.hytale.Main;
 
 public class DiscordLogHandler {
     

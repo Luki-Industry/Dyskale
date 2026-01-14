@@ -1,7 +1,10 @@
 package com.lukienlive.hytale;
 
 import com.google.gson.*;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.lukienlive.hytale.domain.PendingLink;
+import com.lukienlive.hytale.inject.annotation.LinkedStorageFile;
 
 import java.io.*;
 import java.util.HashMap;
@@ -9,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Singleton
 public class LinkedStorage {
 
     private final File file;
@@ -17,7 +21,8 @@ public class LinkedStorage {
     // Codes de liaison temporaires : code -> {playerName, timestamp}
     private final Map<String, PendingLink> pendingLinks = new ConcurrentHashMap<>();
 
-    public LinkedStorage(File file) {
+    @Inject
+    public LinkedStorage(@LinkedStorageFile File file) {
         this.file = file;
     }
 
