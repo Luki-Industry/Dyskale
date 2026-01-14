@@ -26,10 +26,10 @@ public class DiscordLogHandler {
     }
     
     public static void sendLog(String message) {
-        if (!installed || Main.INSTANCE == null || Main.INSTANCE.discordBot == null) {
+        if (!installed || Main.INSTANCE == null || Main.INSTANCE.getDiscordBot() == null) {
             return;
         }
-        Main.INSTANCE.discordBot.sendConsoleLog(message);
+        Main.INSTANCE.getDiscordBot().sendConsoleLog(message);
     }
     
     public static void logInfo(String message) {

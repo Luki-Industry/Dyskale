@@ -5,10 +5,12 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
+import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -21,8 +23,8 @@ public class DiscordBot extends ListenerAdapter {
 
     public boolean start() {
         try {
-            String token = Main.INSTANCE.getConfigString("discord_token");
-            if (token == null || token.isEmpty() || token.equals("VOTRE_TOKEN_DISCORD_ICI")) {
+            String token = Main.INSTANCE.getConfig().get().getString("Discord_token");
+            if (token == null || token.isEmpty()) {
                 Main.INSTANCE.getLogger().atSevere().log("Token Discord invalide ou manquant dans config.json");
                 Main.INSTANCE.getLogger().atWarning().log("Veuillez configurer votre token Discord dans le fichier config.json");
                 return false;
@@ -63,7 +65,7 @@ public class DiscordBot extends ListenerAdapter {
 
         // Salon console : exécuter les commandes
         if (event.isFromGuild()) {
-            String consoleChannelId = Main.INSTANCE.getConfigString("console_channel_id");
+            String consoleChannelId = Main.INSTANCE.getConfig().get().getString("Console_channel_id");
             if (consoleChannelId != null && !consoleChannelId.equals("VOTRE_CHANNEL_ID_ICI")) {
                 if (event.getChannel().getId().equals(consoleChannelId)) {
                     String command = event.getMessage().getContentRaw();
@@ -79,11 +81,11 @@ public class DiscordBot extends ListenerAdapter {
             String discordId = event.getAuthor().getId();
             
             // Vérifier si c'est un code de liaison valide
-            var pending = Main.INSTANCE.storage.consumeLinkCode(message);
+            var pending = Main.INSTANCE.getStorage().consumeLinkCode(message);
             
             if (pending != null) {
                 // Code valide ! Lier le compte
-                Main.INSTANCE.storage.link(pending.getPlayerUuid(), discordId);
+                Main.INSTANCE.getStorage().link(pending.getPlayerUuid(), discordId);
                 
                 event.getChannel().sendMessage(
                     "✅ **Compte lié avec succès!**\n\n" +
@@ -111,7 +113,7 @@ public class DiscordBot extends ListenerAdapter {
     public Member getMemberById(String discordId) {
         if (jda == null) return null;
         
-        String guildId = Main.INSTANCE.getConfigString("guild_id");
+        String guildId = Main.INSTANCE.getConfig().get().getString("Guild_id");
         if (guildId == null || guildId.equals("VOTRE_GUILD_ID_ICI")) {
             return null;
         }
@@ -179,7 +181,7 @@ public class DiscordBot extends ListenerAdapter {
     }
 
     private void sendToConsoleChannel(String content) {
-        String channelId = Main.INSTANCE.getConfigString("console_channel_id");
+        String channelId = Main.INSTANCE.getConfig().get().getString("Console_channel_id");
         if (channelId == null || channelId.equals("VOTRE_CHANNEL_ID_ICI") || jda == null) {
             return;
         }
@@ -238,20 +240,32 @@ public class DiscordBot extends ListenerAdapter {
                 }
             });
         } catch (Exception e) {
-            event.getMessage().removeReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("⏳")).queue();
-            event.getMessage().addReaction(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("❌")).queue();
+            event.getMessage().removeReaction(Emoji.fromUnicode("⏳")).queue();
+            event.getMessage().addReaction(Emoji.fromUnicode("❌")).queue();
             event.getChannel().sendMessage("❌ Erreur: " + e.getMessage()).queue();
             Main.INSTANCE.getLogger().atSevere().withCause(e).log("Erreur lors de l'exécution de la commande Discord");
         }
     }
 
     public void shutdown() {
-        if (consoleSenderThread != null) {
-            consoleSenderThread.interrupt();
-        }
-        if (jda != null) {
+        try {
+            if (consoleSenderThread != null) {
+                consoleSenderThread.interrupt();
+            }
+
+            if (jda == null) {
+                return;
+            }
+
             jda.shutdown();
-            Main.INSTANCE.getLogger().atInfo().log("Discord bot déconnecté.");
+            if (!jda.awaitShutdown(Duration.ofSeconds(30))) {
+                jda.shutdownNow();
+            }
+
+            Main.INSTANCE.getLogger().atInfo().log("Bot Discord déconnecté avec succès.");
+        }
+        catch (InterruptedException e) {
+            Main.INSTANCE.getLogger().atWarning().log("La fermeture du bot Discord a été interrompue");
         }
     }
 }

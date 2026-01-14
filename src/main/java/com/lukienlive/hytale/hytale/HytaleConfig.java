@@ -1,0 +1,79 @@
+package com.lukienlive.hytale.hytale;
+
+import com.hypixel.hytale.codec.Codec;
+import com.hypixel.hytale.codec.KeyedCodec;
+import com.hypixel.hytale.codec.builder.BuilderCodec;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class HytaleConfig {
+    public static final BuilderCodec<HytaleConfig> CODEC;
+
+    private static Map<String, Object> CODEC_MAP = new HashMap<>() {
+        {
+            put("Discord_token", "DISCORD_BOT_TOKEN");
+            put("Guild_id", "YOUR_GUILD_ID_HERE");
+            put("Require_discord_link", false);
+            put("Kick_message", "Vous devez lier votre compte Discord pour rejoindre ce serveur. Utilisez !link sur notre Discord.");
+            put("Console_channel_id", "YOUR_CHANNEL_ID_HERE");
+            put("Enable_console_logs", true);
+        }
+    };
+
+    static {
+        BuilderCodec.Builder<HytaleConfig> codec = BuilderCodec.builder(HytaleConfig.class, HytaleConfig::new);
+
+        for (Map.Entry<String, Object> entry : CODEC_MAP.entrySet()) {
+            String key = entry.getKey();
+            Object defaultValue = entry.getValue();
+
+            var keyedCodec = new KeyedCodec<Object>(key, (Codec<Object>) createCodec(defaultValue));
+            codec.append(keyedCodec,
+                    (config, newValue) -> {
+                        config.values.put(key, newValue);
+                    },
+                    config -> {
+                        return config.values.getOrDefault(key, defaultValue);
+                    }).add();
+        }
+        CODEC = codec.build();
+    }
+
+    private final Map<String, Object> values = new HashMap<>();
+
+    private static Codec<?> createCodec(Object defaultValue) {
+        if (defaultValue instanceof String) {
+            return Codec.STRING;
+        } else if (defaultValue instanceof Integer) {
+            return Codec.INTEGER;
+        } else if (defaultValue instanceof Boolean) {
+            return Codec.BOOLEAN;
+        }
+        throw new IllegalArgumentException("Unsupported type for codec creation");
+    }
+
+    public boolean getBoolean(String key) {
+        Object value = values.get(key);
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        return false;
+    }
+
+    public String getString(String key) {
+        Object value = values.get(key);
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return "";
+    }
+
+    public int getInt(String key) {
+        Object value = values.get(key);
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
+        return 0;
+    }
+}
