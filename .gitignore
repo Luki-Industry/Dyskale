@@ -19,8 +19,7 @@
 *.tar.gz
 *.rar
 
-# Exception: Garder HytaleServer.jar (API n�cessaire)
-!HytaleServer.jar
+HytaleServer.jar
 
 # virtual machine crash logs
 hs_err_pid*
