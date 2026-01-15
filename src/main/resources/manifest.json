@@ -14,7 +14,7 @@
       "Url": "https://sorax5.github.io/"
     }
   ],
-  "ServerVersion": ">=0.0.1",
+  "ServerVersion": "*",
   "Dependencies": {},
   "OptionalDependencies": {},
   "LoadBefore": {},

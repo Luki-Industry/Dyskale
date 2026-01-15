@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 
 @Getter
 public class Main extends JavaPlugin {
-    private Config<HytaleConfig> config;
+    private final Config<HytaleConfig> config;
     public static Main INSTANCE;
 
     @Inject

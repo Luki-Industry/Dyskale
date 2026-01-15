@@ -10,7 +10,7 @@ public class PendingLink {
     private final String playerName;
     private final String playerUuid;
 
-    private long timestamp;
+    private long timestamp = System.currentTimeMillis();
 
     public boolean isExpired() {
         return System.currentTimeMillis() - timestamp > 5 * 60 * 1000; // 5 minutes

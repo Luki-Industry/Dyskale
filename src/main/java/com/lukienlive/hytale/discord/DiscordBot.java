@@ -113,55 +113,43 @@ public class DiscordBot extends ListenerAdapter {
             
             // Vérifier si c'est un code de liaison valide
 
-            var pending = storage.consumeLinkCode(message);
-            if (pending != null) {
-                storage.link(pending.getPlayerUuid(), discordId);
-                
-                event.getChannel().sendMessage(
-                    "✅ **Compte lié avec succès!**\n\n" +
-                    "Votre compte Discord est maintenant lié à: `" + pending.getPlayerName() + "`\n" +
-                    "Vous pouvez maintenant rejoindre le serveur Hytale!"
-                ).queue();
+            storage.consumeLinkCode(message)
+                    .ifPresentOrElse(pending -> {
+                        storage.link(pending.getPlayerUuid(), discordId);
 
-                this.logger.log(Level.INFO, "Compte Discord lié: " + pending.getPlayerName() + " (" + pending.getPlayerUuid() + ") <-> " + event.getAuthor().getAsTag() + " (" + discordId + ")");
-            } else {
-                event.getChannel().sendMessage(
-                    "❌ **Code invalide ou expiré**\n\n" +
-                    "Le code doit être envoyé dans les 5 minutes après votre tentative de connexion.\n" +
-                    "Reconnectez-vous au serveur pour obtenir un nouveau code."
-                ).queue();
-            }
+                        event.getChannel().sendMessage(
+                                "✅ **Compte lié avec succès!**\n\n" +
+                                        "Votre compte Discord est maintenant lié à: `" + pending.getPlayerName() + "`\n" +
+                                        "Vous pouvez maintenant rejoindre le serveur Hytale!"
+                        ).queue();
+
+                        this.logger.log(Level.INFO, "Compte Discord lié: " + pending.getPlayerName() + " (" + pending.getPlayerUuid() + ") <-> " + event.getAuthor().getAsTag() + " (" + discordId + ")");
+                    }, () -> {
+                        event.getChannel().sendMessage(
+                                "❌ **Code invalide ou expiré**\n\n" +
+                                        "Le code doit être envoyé dans les 5 minutes après votre tentative de connexion.\n" +
+                                        "Reconnectez-vous au serveur pour obtenir un nouveau code."
+                        ).queue();
+                    });
         }
-    }
-
-    public String consumeToken(String token) {
-        // Méthode obsolète, gardée pour compatibilité avec LinkCommand
-        return null;
     }
 
     public Member getMemberById(String discordId) {
-        if (jda == null) return null;
-        
-        String guildId = config.get().getString("Guild_id");
-        if (guildId == null || guildId.equals("VOTRE_GUILD_ID_ICI")) {
-            return null;
-        }
-        
-        Guild guild = jda.getGuildById(guildId);
-        if (guild == null) return null;
-        
         try {
+            if (jda == null) return null;
+
+            String guildId = config.get().getString("Guild_id");
+            if (guildId == null || guildId.equals("VOTRE_GUILD_ID_ICI")) {
+                return null;
+            }
+
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return null;
+
             return guild.retrieveMemberById(discordId).complete();
         } catch (Exception e) {
             return null;
         }
-    }
-
-    public String getBotUsername() {
-        if (jda == null || jda.getSelfUser() == null) {
-            return "Bot Discord";
-        }
-        return jda.getSelfUser().getAsTag();
     }
 
     public void sendConsoleLog(String message) {
@@ -338,9 +326,7 @@ public class DiscordBot extends ListenerAdapter {
     private void updateBotStatus() {
         try {
             int playerCount = getOnlinePlayerCount();
-            String activity = playerCount == 0 ? "0 joueur" :
-                             playerCount == 1 ? "1 joueur" :
-                             playerCount + " joueurs";
+            var activity = playerCount + " joueur" + (playerCount > 1 ? "s" : "");
 
             jda.getPresence().setActivity(Activity.watching(activity));
         } catch (Exception e) {

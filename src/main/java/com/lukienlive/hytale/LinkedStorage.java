@@ -9,6 +9,7 @@ import com.lukienlive.hytale.inject.annotation.LinkedStorageFile;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -54,12 +55,13 @@ public class LinkedStorage {
         return code;
     }
 
-    public PendingLink consumeLinkCode(String code) {
-        PendingLink pending = pendingLinks.remove(code.toUpperCase());
-        if (pending == null || pending.isExpired()) {
-            return null;
+    public Optional<PendingLink> consumeLinkCode(String code) {
+        PendingLink link = pendingLinks.remove(code);
+        if (link == null || link.isExpired()) {
+            return Optional.empty();
         }
-        return pending;
+
+        return Optional.of(link);
     }
 
     public void cleanExpiredCodes() {
