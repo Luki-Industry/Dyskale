@@ -1,5 +1,5 @@
 {
-  "Group": "LukienLive",
+  "Group": "com.lukienlive",
   "Name": "DiscordLink",
   "Version": "1.0.0",
   "Description": "Plugin pour synchroniser les rôles Discord et lier les comptes Discord/Hytale",
@@ -7,8 +7,17 @@
   "Authors": [
     {
       "Name": "Luki"
+    },
+    {
+      "Name": "SoraxDubbing",
+      "Email": "sorax5.r23@gmail.com",
+      "Url": "https://sorax5.github.io/"
     }
   ],
   "ServerVersion": ">=0.0.1",
-  "Dependencies": {}
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "LoadBefore": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": false
 }

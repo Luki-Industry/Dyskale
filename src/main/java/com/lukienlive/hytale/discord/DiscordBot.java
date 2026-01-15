@@ -2,6 +2,7 @@ package com.lukienlive.hytale.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.LinkedStorage;
 import com.lukienlive.hytale.Main;
@@ -367,7 +368,8 @@ public class DiscordBot extends ListenerAdapter {
         }
 
         try {
-            var onlinePlayers = com.lukienlive.hytale.hytale.ConnectionListener.getOnlinePlayers();
+
+            var onlinePlayers = Universe.get().getPlayers();
 
             int playerCount = onlinePlayers.size();
             String playerList = onlinePlayers.isEmpty() ?
@@ -409,7 +411,7 @@ public class DiscordBot extends ListenerAdapter {
 
     private int getOnlinePlayerCount() {
         try {
-            return com.lukienlive.hytale.hytale.ConnectionListener.getOnlinePlayers().size();
+            return Universe.get().getPlayerCount();
         } catch (Exception e) {
             return 0;
         }

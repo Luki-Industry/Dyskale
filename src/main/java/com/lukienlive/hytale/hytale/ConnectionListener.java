@@ -6,13 +6,12 @@ import com.hypixel.hytale.event.EventRegistry;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerSetupConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
-import com.lukienlive.hytale.Main;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.LinkedStorage;
 import com.lukienlive.hytale.discord.DiscordLogger;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,7 +20,7 @@ public class ConnectionListener implements IEventListener {
     private static String PLAYER_LINKED_MESSAGE = "Joueur %s connecté (Discord lié: %s)";
     private static String PLAYER_UNLINKED_MESSAGE = "Joueur %s connecté (pas de compte Discord lié)";
 
-    private static final Set<String> onlinePlayers = ConcurrentHashMap.newKeySet();
+    private final Set<String> onlinePlayers = new HashSet<>();
 
     @Inject
     private Logger logger;
@@ -41,10 +40,6 @@ public class ConnectionListener implements IEventListener {
         registry.register(PlayerConnectEvent.class, this::onPlayerConnect);
         registry.register(PlayerDisconnectEvent.class, this::onPlayerDisconnect);
         logger.log(Level.INFO, "EventsListener enregistré pour PlayerSetupConnectEvent, PlayerConnectEvent et PlayerDisconnectEvent");
-    }
-
-    public static Set<String> getOnlinePlayers() {
-        return onlinePlayers;
     }
 
     private void onPlayerSetupConnect(PlayerSetupConnectEvent event) {
