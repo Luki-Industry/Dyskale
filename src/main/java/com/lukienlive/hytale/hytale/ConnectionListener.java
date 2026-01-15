@@ -4,10 +4,14 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.hypixel.hytale.event.EventRegistry;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
+import com.lukienlive.hytale.Main;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.LinkedStorage;
 import com.lukienlive.hytale.discord.DiscordLogger;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +19,8 @@ import java.util.logging.Logger;
 public class ConnectionListener implements IEventListener {
     private static String PLAYER_LINKED_MESSAGE = "Joueur %s connecté (Discord lié: %s)";
     private static String PLAYER_UNLINKED_MESSAGE = "Joueur %s connecté (pas de compte Discord lié)";
+
+    private static final Set<String> onlinePlayers = ConcurrentHashMap.newKeySet();
 
     @Inject
     private Logger logger;
@@ -31,7 +37,12 @@ public class ConnectionListener implements IEventListener {
     @Override
     public void Register(EventRegistry registry) {
         registry.register(PlayerConnectEvent.class, this::onPlayerConnect);
-        logger.log(Level.INFO, "EventsListener enregistré pour PlayerConnectEvent");
+        registry.register(PlayerDisconnectEvent.class, this::onPlayerDisconnect);
+        logger.log(Level.INFO, "EventsListener enregistré pour PlayerConnectEvent et PlayerDisconnectEvent");
+    }
+
+    public static Set<String> getOnlinePlayers() {
+        return onlinePlayers;
     }
 
     private void onPlayerConnect(PlayerConnectEvent event) {
@@ -63,6 +74,13 @@ public class ConnectionListener implements IEventListener {
         } else {
             this.logger.log(Level.INFO, "Joueur " + player.getUsername() + " autorisé (Discord: " + discordId + ")");
             discordLogger.playerJoin(player.getUsername() + " (Discord lié)");
+            onlinePlayers.add(player.getUsername());
         }
+    }
+
+    private void onPlayerDisconnect(PlayerDisconnectEvent event) {
+        var player = event.getPlayerRef();
+        onlinePlayers.remove(player.getUsername());
+        DiscordLogHandler.logPlayerLeave(player.getUsername());
     }
 }

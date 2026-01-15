@@ -45,5 +45,6 @@ mods/
 # Gradle
 .gradle
 build/
+bin/
 run/
 /libs/HytaleServer.jar

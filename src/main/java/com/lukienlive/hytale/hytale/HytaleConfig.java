@@ -17,7 +17,11 @@ public class HytaleConfig {
             put("Require_discord_link", false);
             put("Kick_message", "Vous devez lier votre compte Discord pour rejoindre ce serveur. Utilisez !link sur notre Discord.");
             put("Console_channel_id", "YOUR_CHANNEL_ID_HERE");
+            put("Status_channel_id", "YOUR_STATUS_CHANNEL_ID_HERE");
+            put("Status_message_id", "");
             put("Enable_console_logs", true);
+            put("Enable_bot_status", false);
+            put("Enable_status_message", false);
         }
     };
 
@@ -75,5 +79,9 @@ public class HytaleConfig {
             return (Integer) value;
         }
         return 0;
+    }
+    
+    public void set(String key, Object value) {
+        values.put(key, value);
     }
 }
