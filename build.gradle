@@ -92,6 +92,7 @@ tasks.register('setupHytaleApi') {
 shadowJar {
     archiveBaseName.set('Hytale-Plugin')
     archiveClassifier.set('')
+    mergeServiceFiles()
 }
 
 tasks.withType(JavaCompile).configureEach {

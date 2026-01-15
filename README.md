@@ -1,6 +1,6 @@
 # Hytale Discord Link Plugin
 
-Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec système de vérification automatique et console Discord.
+Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec système de vérification automatique, console Discord et statut en temps réel.
 
 ## 🌟 Fonctionnalités
 
@@ -8,6 +8,8 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 - **🤖 Liaison automatique par MP** : Les joueurs reçoivent un code unique à envoyer au bot Discord
 - **📊 Console Discord** : Tous les logs du serveur dans un salon Discord
 - **⚡ Commandes Discord** : Exécutez des commandes serveur depuis Discord
+- **📈 Statut du serveur** : Mise à jour automatique avec nombre de joueurs et liste
+- **🟢 Présence du bot** : Affiche "Watching X joueurs" en temps réel
 - **💾 Stockage JSON** : Sauvegarde automatique des comptes liés
 - **🔄 Configuration dynamique** : Ajout automatique des nouveaux paramètres
 
@@ -20,29 +22,21 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 
 ## 🚀 Installation
 
-### 1. Initialiser l'API et compiler
+### 1. Compiler le projet
 
 ```powershell
-# Copie automatique l'API et compile le projet
-gradle build
+.\gradlew shadowJar
 ```
 
 Le JAR sera généré dans `build/libs/Hytale-Plugin-1.0.0.jar`.
 
-### 2. Lancer le serveur de test (Optionnel)
-
-Possibilité de lancer un serveur Hytale de test directement depuis le projet :
-
-```powershell
-gradle runHytaleServer
-```
-
-### 3. Installation sur un serveur dédié
+### 2. Installation sur le serveur
 
 1. Copier `build/libs/Hytale-Plugin-1.0.0.jar` dans le dossier `mods/` du serveur
 2. Démarrer le serveur
 3. Arrêter le serveur (génération de la config)
 4. Configurer `mods/LukienLive_DiscordLink/config.json`
+5. Redémarrer le serveur
 
 ## ⚙️ Configuration
 
@@ -50,12 +44,16 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
 
 ```json
 {
-  "discord_token": "VOTRE_TOKEN_BOT_DISCORD",
-  "guild_id": "VOTRE_ID_SERVEUR_DISCORD",
-  "require_discord_link": false,
-  "kick_message": "Vous devez lier votre compte Discord...",
-  "console_channel_id": "VOTRE_ID_SALON_CONSOLE",
-  "enable_console_logs": true
+  "Discord_token": "VOTRE_TOKEN_BOT_DISCORD",
+  "Guild_id": "VOTRE_ID_SERVEUR_DISCORD",
+  "Require_discord_link": false,
+  "Kick_message": "Vous devez lier votre compte Discord pour rejoindre ce serveur. Utilisez !link sur notre Discord.",
+  "Console_channel_id": "VOTRE_ID_SALON_CONSOLE",
+  "Status_channel_id": "VOTRE_ID_SALON_STATUT",
+  "Status_message_id": "",
+  "Enable_console_logs": true,
+  "Enable_bot_status": true,
+  "Enable_status_message": true
 }
 ```
 
@@ -63,12 +61,16 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
 
 | Paramètre | Description | Valeur par défaut |
 |-----------|-------------|-------------------|
-| `discord_token` | Token du bot Discord | `VOTRE_TOKEN_DISCORD_ICI` |
-| `guild_id` | ID du serveur Discord | `VOTRE_GUILD_ID_ICI` |
-| `require_discord_link` | Obliger la liaison Discord | `false` |
-| `kick_message` | Message affiché aux joueurs non liés | Message par défaut |
-| `console_channel_id` | ID du salon pour les logs | `VOTRE_CHANNEL_ID_ICI` |
-| `enable_console_logs` | Activer les logs Discord | `true` |
+| `Discord_token` | Token du bot Discord | `DISCORD_BOT_TOKEN` |
+| `Guild_id` | ID du serveur Discord | `YOUR_GUILD_ID_HERE` |
+| `Require_discord_link` | Obliger la liaison Discord | `false` |
+| `Kick_message` | Message affiché aux joueurs non liés | Message par défaut |
+| `Console_channel_id` | ID du salon pour les logs | `YOUR_CHANNEL_ID_HERE` |
+| `Status_channel_id` | ID du salon pour le statut | `YOUR_STATUS_CHANNEL_ID_HERE` |
+| `Status_message_id` | ID du message de statut (auto) | `""` |
+| `Enable_console_logs` | Activer les logs Discord | `true` |
+| `Enable_bot_status` | Activer "Watching X joueurs" | `false` |
+| `Enable_status_message` | Activer le message de statut | `false` |
 
 ### Obtenir les IDs Discord
 
@@ -91,78 +93,65 @@ Dans le salon console configuré :
 - **Exécuter des commandes** : Tapez n'importe quelle commande serveur
 - **Réactions** : ⏳ en cours → ✅ succès / ❌ erreur
 
+### Statut du serveur
+
+Le bot affiche automatiquement :
+- **🟢 Serveur EN LIGNE** : Avec nombre de joueurs et liste
+- **🔴 Serveur HORS LIGNE** : Quand le serveur s'arrête
+- **Mise à jour** : Toutes les 5 minutes
+- **Timestamp** : Dernière mise à jour visible
+
 ## 📁 Structure du projet
 
 ```
 Hytale-Plugin/
 ├── src/main/java/com/lukienlive/hytale/
-│   ├── Main.java                    # Point d'entrée du plugin
-│   ├── DiscordBot.java              # Gestion du bot Discord
-│   ├── EventsListener.java          # Événements de connexion
-│   ├── LinkedStorage.java           # Stockage des liaisons
-│   ├── DiscordCommandSender.java    # Exécution de commandes
-│   └── DiscordLogHandler.java       # Logs vers Discord
-├── src/main/resources/
-│   ├── config.json                  # Config par défaut (template)
-│   └── manifest.json                # Métadonnées du plugin
-├── HytaleServer.jar                 # API Hytale (requis)
-├── pom.xml                          # Configuration Maven
-├── mvnw.cmd                         # Wrapper Maven
-└── setup-hytale-api.ps1            # Script d'installation API
-
-Généré au runtime :
-├── mods/LukienLive_DiscordLink/
-│   ├── config.json                  # Configuration active
-│   └── linked_players.json          # Base de données
+│   ├── Main.java                          # Point d'entrée du plugin
+│   ├── LinkedStorage.java                 # Stockage des comptes liés
+│   ├── discord/
+│   │   ├── DiscordBot.java               # Gestion du bot Discord
+│   │   ├── DiscordLogHandler.java        # Redirection des logs
+│   │   └── DiscordCommandSender.java     # Exécution des commandes
+│   ├── hytale/
+│   │   ├── ConnectionListener.java       # Événements de connexion
+│   │   ├── HytaleConfig.java            # Codec de configuration
+│   │   └── IEventListener.java          # Interface pour les listeners
+│   ├── inject/
+│   │   ├── HytaleInjector.java          # Configuration Guice
+│   │   └── annotation/
+│   │       └── LinkedStorageFile.java   # Annotation pour le fichier de stockage
+│   └── domain/
+│       └── PendingLink.java             # Modèle pour les codes de liaison
+├── build.gradle                          # Configuration Gradle
+└── README.md                             # Documentation
 ```
 
-## 🔧 Développement
+## 🛠️ Développement
 
-### Compiler en mode rapide
+### Compilation
 
 ```powershell
-.\mvnw.cmd package -q
+.\gradlew clean shadowJar
 ```
 
 ### Dépendances
 
-- **JDA 5.0.0-alpha.19** : API Discord
-- **Gson 2.10.1** : Sérialisation JSON
-- **SLF4J-NOP 1.7.36** : Suppression logs JDA
-- **Hytale Server API** : API serveur Hytale
+- **JDA 6.3.0** : Librairie Discord
+- **slf4j-nop 2.0.17** : Logger pour JDA
+- **Gson 2.13.2** : Sérialisation JSON
+- **Guice 7.0.0** : Injection de dépendances
+- **Lombok 1.18.42** : Réduction du boilerplate
 
-### API Hytale utilisée
+## 📝 Licence
 
-- `JavaPlugin` : Classe de base
-- `PlayerSetupConnectEvent` : Détection connexion joueur
-- `EventRegistry` : Système d'événements
-- `CommandManager` : Exécution de commandes
+MIT License - Voir le fichier LICENSE pour plus de détails.
 
-## 📝 Changelog
+## 👤 Auteur
 
-### Version 1.0.0 (2026-01-14)
-
-- ✅ Liaison Discord par code MP
-- ✅ Vérification automatique à la connexion
-- ✅ Console Discord avec logs temps réel
-- ✅ Exécution de commandes depuis Discord
-- ✅ Configuration dynamique avec fusion automatique
-- ✅ Stockage JSON avec nettoyage des codes expirés
+**Luki**
+- Discord: [Votre serveur Discord]
+- GitHub: [@lukienlive](https://github.com/lukienlive)
 
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
-
-## 📄 Licence
-
-Ce projet est sous licence MIT.
-
-## 👤 Auteur
-
-**LukienLive**
-
-## 🙏 Remerciements
-
-- Hypixel Studios pour Hytale
-- JDA (Java Discord API)
-- Nitrado pour leur exemple de plugin WebServer
