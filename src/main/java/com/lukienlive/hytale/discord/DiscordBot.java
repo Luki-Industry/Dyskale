@@ -43,7 +43,7 @@ public class DiscordBot extends ListenerAdapter {
     private String statusMessageId = null;
 
     @Inject
-    private final Logger logger;
+    private Logger logger;
 
     @Inject
     private LinkedStorage storage;
@@ -54,12 +54,11 @@ public class DiscordBot extends ListenerAdapter {
     public boolean start() {
         try {
             String token = config.get().getString("Discord_token");
-            statusMessageId = Main.INSTANCE.getConfig().get().getString("Status_message_id");
+            statusMessageId = Main .INSTANCE.getConfig().get().getString("Status_message_id");
             if (statusMessageId != null && statusMessageId.isEmpty()) {
                 statusMessageId = null;
             }
 
-            String token = Main.INSTANCE.getConfig().get().getString("Discord_token");
             if (token == null || token.isEmpty()) {
                 this.logger.log(Level.SEVERE, "Token Discord invalide ou manquant dans config.json");
                 this.logger.log(Level.WARNING, "Veuillez configurer votre token Discord dans le fichier config.json");

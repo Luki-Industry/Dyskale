@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 @Getter
 public class Main extends JavaPlugin {
     private Config<HytaleConfig> config;
+    public static Main INSTANCE;
 
     @Inject
     private LinkedStorage storage;
@@ -37,6 +38,8 @@ public class Main extends JavaPlugin {
 
     @Override
     protected void setup() {
+        INSTANCE = this;
+
         this.config.load().join();
         this.config.save().join();
 

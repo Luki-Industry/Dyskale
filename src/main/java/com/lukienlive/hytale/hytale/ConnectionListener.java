@@ -81,6 +81,6 @@ public class ConnectionListener implements IEventListener {
     private void onPlayerDisconnect(PlayerDisconnectEvent event) {
         var player = event.getPlayerRef();
         onlinePlayers.remove(player.getUsername());
-        DiscordLogHandler.logPlayerLeave(player.getUsername());
+        discordLogger.playerLeave(player.getUsername());
     }
 }
