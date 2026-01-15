@@ -5,19 +5,16 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.discord.DiscordBot;
-import com.lukienlive.hytale.discord.DiscordLogHandler;
+import com.lukienlive.hytale.discord.DiscordLogger;
 import com.lukienlive.hytale.hytale.ConnectionListener;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 import com.lukienlive.hytale.inject.HytaleInjector;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 
 @Getter
 public class Main extends JavaPlugin {
-
-    public static Main INSTANCE;
     private Config<HytaleConfig> config;
 
     @Inject
@@ -29,6 +26,9 @@ public class Main extends JavaPlugin {
     @Inject
     private DiscordBot discordBot;
 
+    @Inject
+    private DiscordLogger discordLogger;
+
     public Main(@Nonnull JavaPluginInit init) {
         super(init);
 
@@ -37,8 +37,6 @@ public class Main extends JavaPlugin {
 
     @Override
     protected void setup() {
-        INSTANCE = this;
-
         this.config.load().join();
         this.config.save().join();
 
@@ -58,14 +56,16 @@ public class Main extends JavaPlugin {
         if (!discordBot.start()) {
             getLogger().atWarning().log("Le bot Discord n'a pas pu démarrer. Vérifiez votre configuration.");
         } else if (config.get().getBoolean("Enable_console_logs")){
-            DiscordLogHandler.install();
+            discordLogger.install();
         }
     }
 
     @Override
     protected void shutdown() {
-        DiscordLogHandler.uninstall();
-        
+        if (discordLogger != null) {
+            discordLogger.uninstall();
+        }
+
         if (discordBot != null) {
             discordBot.shutdown();
         }

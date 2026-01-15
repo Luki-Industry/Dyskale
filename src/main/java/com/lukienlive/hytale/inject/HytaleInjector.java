@@ -24,7 +24,7 @@ public class HytaleInjector extends AbstractModule {
     @Override
     protected void configure() {
         bind(Main.class).toInstance(main);
-        bind(Config.class).toInstance(config);
+        bind(new TypeLiteral<Config<HytaleConfig>>() {}).toInstance(config);
     }
 
     @Provides

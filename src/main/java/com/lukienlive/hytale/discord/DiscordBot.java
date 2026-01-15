@@ -2,7 +2,10 @@ package com.lukienlive.hytale.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.hypixel.hytale.server.core.util.Config;
+import com.lukienlive.hytale.LinkedStorage;
 import com.lukienlive.hytale.Main;
+import com.lukienlive.hytale.hytale.HytaleConfig;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -31,9 +34,15 @@ public class DiscordBot extends ListenerAdapter {
     @Inject
     private Logger logger;
 
+    @Inject
+    private LinkedStorage storage;
+
+    @Inject
+    private Config<HytaleConfig> config;
+
     public boolean start() {
         try {
-            String token = Main.INSTANCE.getConfig().get().getString("Discord_token");
+            String token = config.get().getString("Discord_token");
             if (token == null || token.isEmpty()) {
                 this.logger.log(Level.SEVERE, "Token Discord invalide ou manquant dans config.json");
                 this.logger.log(Level.WARNING, "Veuillez configurer votre token Discord dans le fichier config.json");
@@ -69,12 +78,13 @@ public class DiscordBot extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        // Ignorer les messages du bot lui-même
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            return;
+        }
 
         // Salon console : exécuter les commandes
         if (event.isFromGuild()) {
-            String consoleChannelId = Main.INSTANCE.getConfig().get().getString("Console_channel_id");
+            String consoleChannelId = config.get().getString("Console_channel_id");
             if (consoleChannelId != null && !consoleChannelId.equals("VOTRE_CHANNEL_ID_ICI")) {
                 if (event.getChannel().getId().equals(consoleChannelId)) {
                     String command = event.getMessage().getContentRaw();
@@ -90,11 +100,10 @@ public class DiscordBot extends ListenerAdapter {
             String discordId = event.getAuthor().getId();
             
             // Vérifier si c'est un code de liaison valide
-            var pending = Main.INSTANCE.getStorage().consumeLinkCode(message);
-            
+
+            var pending = storage.consumeLinkCode(message);
             if (pending != null) {
-                // Code valide ! Lier le compte
-                Main.INSTANCE.getStorage().link(pending.getPlayerUuid(), discordId);
+                storage.link(pending.getPlayerUuid(), discordId);
                 
                 event.getChannel().sendMessage(
                     "✅ **Compte lié avec succès!**\n\n" +
@@ -122,7 +131,7 @@ public class DiscordBot extends ListenerAdapter {
     public Member getMemberById(String discordId) {
         if (jda == null) return null;
         
-        String guildId = Main.INSTANCE.getConfig().get().getString("Guild_id");
+        String guildId = config.get().getString("Guild_id");
         if (guildId == null || guildId.equals("VOTRE_GUILD_ID_ICI")) {
             return null;
         }
@@ -190,7 +199,7 @@ public class DiscordBot extends ListenerAdapter {
     }
 
     private void sendToConsoleChannel(String content) {
-        String channelId = Main.INSTANCE.getConfig().get().getString("Console_channel_id");
+        String channelId = config.get().getString("Console_channel_id");
         if (channelId == null || channelId.equals("VOTRE_CHANNEL_ID_ICI") || jda == null) {
             return;
         }

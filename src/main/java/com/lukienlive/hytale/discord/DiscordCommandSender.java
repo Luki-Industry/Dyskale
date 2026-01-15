@@ -1,12 +1,18 @@
 package com.lukienlive.hytale.discord;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.UUID;
 
+@Singleton
 public class DiscordCommandSender implements CommandSender {
+
+    @Inject
+    private DiscordLogger logger;
     
     private final MessageReceivedEvent event;
     private static final UUID DISCORD_UUID = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -22,7 +28,7 @@ public class DiscordCommandSender implements CommandSender {
         if (content != null && !content.isEmpty()) {
             event.getChannel().sendMessage(content).queue();
             // Aussi l'envoyer dans les logs
-            DiscordLogHandler.sendLog("📤 " + content);
+            logger.send("📤 " + content);
         }
     }
     
