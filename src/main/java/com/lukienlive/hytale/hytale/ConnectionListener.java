@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.hypixel.hytale.event.EventRegistry;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
+import com.hypixel.hytale.server.core.event.events.player.PlayerSetupConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.lukienlive.hytale.Main;
 import com.hypixel.hytale.server.core.util.Config;
@@ -36,43 +37,54 @@ public class ConnectionListener implements IEventListener {
 
     @Override
     public void Register(EventRegistry registry) {
+        registry.register(PlayerSetupConnectEvent.class, this::onPlayerSetupConnect);
         registry.register(PlayerConnectEvent.class, this::onPlayerConnect);
         registry.register(PlayerDisconnectEvent.class, this::onPlayerDisconnect);
-        logger.log(Level.INFO, "EventsListener enregistré pour PlayerConnectEvent et PlayerDisconnectEvent");
+        logger.log(Level.INFO, "EventsListener enregistré pour PlayerSetupConnectEvent, PlayerConnectEvent et PlayerDisconnectEvent");
     }
 
     public static Set<String> getOnlinePlayers() {
         return onlinePlayers;
     }
 
-    private void onPlayerConnect(PlayerConnectEvent event) {
-        var player = event.getPlayerRef();
+    private void onPlayerSetupConnect(PlayerSetupConnectEvent event) {
+        String username = event.getUsername();
+        String uuid = event.getUuid().toString();
 
         boolean requireDiscord = config.get().getBoolean("Require_discord_link");
-        String discordId = storage.getDiscordId(player.getUuid().toString());
+        String discordId = storage.getDiscordId(uuid);
 
         if (!requireDiscord) {
-            this.logger.log(Level.INFO, discordId != null ?
-                    String.format(PLAYER_LINKED_MESSAGE, player.getUsername(), discordId) :
-                    String.format(PLAYER_UNLINKED_MESSAGE, player.getUsername()));
+            String message = discordId != null ?
+                    String.format(PLAYER_LINKED_MESSAGE, username, discordId) :
+                    String.format(PLAYER_UNLINKED_MESSAGE, username);
+            this.logger.log(Level.INFO, message);
             return;
         }
 
         if (discordId == null) {
-            String linkCode = storage.generateLinkCode(player.getUsername(), player.getUuid().toString());
+            String linkCode = storage.generateLinkCode(username, uuid);
 
-            String kickMessage = "=== COMPTE DISCORD REQUIS ===\n\n" +
-                    "Vous devez lier votre compte Discord\npour rejoindre ce serveur.\n\n" +
-                    "Votre code de liaison:\n" + linkCode + "\n\n" +
-                    "Envoyez UNIQUEMENT ce code en message privé\nau bot Discord sur le serveur.\n\n" +
-                    "(Le code expire dans 5 minutes)";
+            String kickMessage = "Discord account required!\n\n" +
+                    "Your link code: " + linkCode + "\n\n" +
+                    "Send this code to the Discord bot in a private message.\n" +
+                    "(Code expires in 5 minutes)";
 
-            this.logger.log(Level.WARNING, "Joueur " + player.getUsername() + " refusé: compte Discord non lié (code: " + linkCode + ")");
-            discordLogger.warning("⛔ Connexion refusée: " + player.getUsername() + " - Code de liaison: " + linkCode);
+            this.logger.log(Level.WARNING, "Joueur " + username + " refusé: compte Discord non lié (code: " + linkCode + ")");
+            discordLogger.warning("⛔ Connexion refusée: " + username + " - Code de liaison: " + linkCode);
 
-            player.getPacketHandler().disconnect(kickMessage);
+            event.setReason(kickMessage);
+            event.setCancelled(true);
         } else {
-            this.logger.log(Level.INFO, "Joueur " + player.getUsername() + " autorisé (Discord: " + discordId + ")");
+            this.logger.log(Level.INFO, "Joueur " + username + " autorisé (Discord: " + discordId + ")");
+        }
+    }
+
+    private void onPlayerConnect(PlayerConnectEvent event) {
+        var player = event.getPlayerRef();
+        String discordId = storage.getDiscordId(player.getUuid().toString());
+
+        if (discordId != null) {
             discordLogger.playerJoin(player.getUsername() + " (Discord lié)");
             onlinePlayers.add(player.getUsername());
         }
