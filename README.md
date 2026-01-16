@@ -10,6 +10,7 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 - **⚡ Commandes Discord** : Exécutez des commandes serveur depuis Discord
 - **📈 Statut du serveur** : Mise à jour automatique avec nombre de joueurs et liste
 - **🟢 Présence du bot** : Affiche "Watching X joueurs" en temps réel
+- **🔄 Synchronisation des rôles** : Synchronisation bidirectionnelle entre rôles Discord et groupes LuckPerms
 - **💾 Stockage JSON** : Sauvegarde automatique des comptes liés
 - **🔄 Configuration dynamique** : Ajout automatique des nouveaux paramètres
 
@@ -53,7 +54,8 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
   "Status_message_id": "",
   "Enable_console_logs": true,
   "Enable_bot_status": true,
-  "Enable_status_message": true
+  "Enable_status_message": true,
+  "Role_Group_Mapping": "ROLE_ID_1:GROUP_NAME_1,ROLE_ID_2:GROUP_NAME_2"
 }
 ```
 
@@ -71,6 +73,29 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
 | `Enable_console_logs` | Activer les logs Discord | `true` |
 | `Enable_bot_status` | Activer "Watching X joueurs" | `false` |
 | `Enable_status_message` | Activer le message de statut | `false` |
+| `Role_Group_Mapping` | Correspondance Rôles <-> Groupes | `""` |
+
+## 🔄 Synchronisation des rôles
+
+Le système de synchronisation permet de lier des rôles Discord à des groupes LuckPerms.
+
+- **Discord → Hytale** : Si un joueur reçoit un rôle sur Discord, il est ajouté au groupe LuckPerms correspondant.
+- **Hytale → Discord** : Si un joueur rejoint un groupe LuckPerms, il reçoit le rôle Discord correspondant.
+- **Suppression** : La suppression du rôle/groupe est aussi synchronisée dans les deux sens.
+
+### Configuration du mapping
+
+Format : `ID_ROLE_DISCORD:NOM_GROUPE_LUCKPERMS`
+Séparer les multiples mappings par une virgule.
+
+**Exemple :**
+Pour lier le rôle Discord `1122334455` au groupe `vip` et le rôle `9988776655` au groupe `moderator` :
+
+```json
+"Role_Group_Mapping": "1122334455:vip,9988776655:moderator"
+```
+
+
 
 ### Obtenir les IDs Discord
 
