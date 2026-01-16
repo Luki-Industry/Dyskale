@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.application.service.LinkService;
 import com.lukienlive.hytale.discord.DiscordBot;
 import com.lukienlive.hytale.discord.DiscordLogger;
+import com.lukienlive.hytale.discord.RoleSyncService;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -38,6 +39,9 @@ public class ConnectionListener implements IEventListener {
 
     @Inject
     private DiscordBot discordBot;
+
+    @Inject
+    private RoleSyncService roleSyncService;
 
     @Override
     public void Register(EventRegistry registry) {
@@ -122,6 +126,7 @@ public class ConnectionListener implements IEventListener {
         if (discordId != null) {
             discordLogger.playerJoin(player.getUsername() + " (Discord lié)");
             onlinePlayers.add(player.getUsername());
+            roleSyncService.syncUser(player.getUuid(), discordId);
         }
     }
 

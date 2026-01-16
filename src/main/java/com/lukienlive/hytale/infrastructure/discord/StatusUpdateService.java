@@ -6,6 +6,7 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.Main;
 import com.lukienlive.hytale.hytale.HytaleConfig;
+import lombok.Setter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Activity;
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.awt.Color;
+import java.lang.management.ManagementFactory;
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 @Singleton
 public class StatusUpdateService {
 
+    @Setter
     private JDA jda;
     private ScheduledExecutorService statusUpdateExecutor;
     private String statusMessageId = null;
@@ -34,10 +37,6 @@ public class StatusUpdateService {
     @Inject
     private Logger logger;
 
-    public void setJda(JDA jda) {
-        this.jda = jda;
-    }
-
     public void start() {
         statusMessageId = config.get().getString("Status_message_id");
         if (statusMessageId != null && statusMessageId.isEmpty()) {
@@ -47,7 +46,10 @@ public class StatusUpdateService {
         boolean botStatusEnabled = config.get().getBoolean("Enable_bot_status");
         boolean statusMessageEnabled = config.get().getBoolean("Enable_status_message");
 
+        logger.info("[StatusService] Démarrage... BotStatus=" + botStatusEnabled + ", MessageStatus=" + statusMessageEnabled);
+
         if (!botStatusEnabled && !statusMessageEnabled) {
+            logger.info("[StatusService] Services désactivés dans la config.");
             return;
         }
 
@@ -56,6 +58,8 @@ public class StatusUpdateService {
             if (channelId == null || channelId.isEmpty() || channelId.equals("YOUR_STATUS_CHANNEL_ID_HERE")) {
                 logger.log(Level.WARNING, "Status_channel_id non configuré - message de statut désactivé");
                 statusMessageEnabled = false;
+            } else {
+                logger.info("[StatusService] Channel ID configuré: " + channelId);
             }
         }
 
@@ -74,7 +78,7 @@ public class StatusUpdateService {
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Erreur lors de la mise à jour du statut", e);
             }
-        }, 5, 300, TimeUnit.SECONDS);
+        }, 5, 30, TimeUnit.SECONDS);
     }
 
     public void shutdown() {
@@ -107,7 +111,10 @@ public class StatusUpdateService {
         }
 
         TextChannel channel = jda.getTextChannelById(channelId);
-        if (channel == null) return;
+        if (channel == null) {
+            logger.warning("[StatusService] Channel introuvable avec l'ID: " + channelId);
+            return;
+        }
 
         sendStatusToChannel(channel);
     }
@@ -119,32 +126,47 @@ public class StatusUpdateService {
             String playerList = onlinePlayers.isEmpty() ?
                     "Aucun joueur connecté" :
                     onlinePlayers.stream()
-                            .map(p -> "• " + p)
+                            .map(p -> "• " + p.getUsername())
                             .collect(Collectors.joining("\n"));
+
+            long uptimeMillis = ManagementFactory.getRuntimeMXBean().getUptime();
+            String uptime = String.format("%dh %02dm",
+                TimeUnit.MILLISECONDS.toHours(uptimeMillis),
+                TimeUnit.MILLISECONDS.toMinutes(uptimeMillis) % 60);
+
+            long usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024;
+            long maxMemory = Runtime.getRuntime().maxMemory() / 1024 / 1024;
+            String ramUsage = String.format("%d MB / %d MB", usedMemory, maxMemory);
 
             EmbedBuilder embed = new EmbedBuilder()
                     .setTitle("🟢 Serveur Hytale - EN LIGNE")
                     .setColor(Color.GREEN)
-                    .addField("👥 Joueurs connectés", String.valueOf(playerCount), true)
-                    .addField("⏱️ Statut", "Serveur actif", true)
+                    .addField("👥 Joueurs", String.valueOf(playerCount), true)
+                    .addField("⏱️ Uptime", uptime, true)
+                    .addField("💾 RAM", ramUsage, true)
                     .addField("📝 Liste des joueurs", playerList.length() > 1024 ?
                             playerList.substring(0, 1021) + "..." : playerList, false)
                     .setFooter("Dernière mise à jour")
                     .setTimestamp(Instant.now());
 
             if (statusMessageId == null) {
+                logger.info("[StatusService] Envoi d'un nouveau message de statut...");
                 channel.sendMessageEmbeds(embed.build()).queue(msg -> {
                     statusMessageId = msg.getId();
                     saveStatusMessageId();
-                });
+                }, error -> logger.log(Level.WARNING, "[StatusService] Erreur envoi message statut", error));
             } else {
                 channel.retrieveMessageById(statusMessageId).queue(
-                        msg -> msg.editMessageEmbeds(embed.build()).queue(),
+                        msg -> msg.editMessageEmbeds(embed.build()).queue(
+                                s -> {},
+                                e -> logger.log(Level.WARNING, "[StatusService] Erreur lors de l'édition du message", e)
+                        ),
                         error -> {
+                            logger.warning("[StatusService] Message statut introuvable (" + error.getMessage() + "), création d'un nouveau...");
                             channel.sendMessageEmbeds(embed.build()).queue(msg -> {
                                 statusMessageId = msg.getId();
                                 saveStatusMessageId();
-                            });
+                            }, e -> logger.log(Level.WARNING, "[StatusService] Erreur envoi nouveau message statut", e));
                         }
                 );
             }
@@ -163,33 +185,6 @@ public class StatusUpdateService {
 
     private void saveStatusMessageId() {
         if (statusMessageId != null) {
-            // Needed to access Main.INSTANCE for save? Or use config object?
-            // The injected config object is a wrapper around HytaleConfig, but does it support 'set' and 'save'?
-            // The injected config is `Config<HytaleConfig>`.
-            // In DiscordBot it used `Main.INSTANCE.getConfig().get().set(...)` which requires map manipulation or codec support.
-
-            // HytaleConfig stores values in a map.
-            // But `Config` object from Hytale API. `config.get()` returns the POJO.
-            // HytaleConfig has `values` map but it's private.
-            // But HytaleConfig has put methods via codec updates? No.
-
-            // The existing code was:
-            // Main.INSTANCE.getConfig().get().set("Status_message_id", statusMessageId);
-            // Main.INSTANCE.getConfig().save();
-
-            // I should assume HytaleConfig exposes a setter or I can add one.
-            // Checking HytaleConfig: it has `values` map.
-
-            // Wait, HytaleConfig is a custom class. I'll check if I can add a setter to HytaleConfig or if it exists.
-
-            // Main.INSTANCE.getConfig() is accessible.
-            // But I should try to use dependency injection.
-            // I have `config` injected.
-
-            // I'll resort to Main.INSTANCE for now to keep it working as before, or add method to HytaleConfig.
-            // I'll assume HytaleConfig needs a way to set values.
-            // I'll update HytaleConfig later if needed. For now I'll use Main.INSTANCE.
-
             Main.INSTANCE.getConfig().get().set("Status_message_id", statusMessageId);
             Main.INSTANCE.getConfig().save();
         }
@@ -225,4 +220,3 @@ public class StatusUpdateService {
          }
     }
 }
-

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.hytale.HytaleConfig;
+import lombok.Setter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
@@ -17,6 +18,7 @@ public class ConsoleLogService {
 
     private final BlockingQueue<String> consoleQueue = new LinkedBlockingQueue<>();
     private Thread consoleSenderThread;
+    @Setter
     private JDA jda;
 
     @Inject
@@ -24,10 +26,6 @@ public class ConsoleLogService {
 
     @Inject
     private Logger logger; // Java logger to log errors of this service
-
-    public void setJda(JDA jda) {
-        this.jda = jda;
-    }
 
     public void start() {
         consoleSenderThread = new Thread(this::runLoop, "Discord-Console-Sender");

@@ -103,5 +103,7 @@ public class Main extends JavaPlugin {
             linkService.shutdown();
         }
         getLogger().atInfo().log("Plugin arrêté.");
+
+        this.config.save().join();
     }
 }

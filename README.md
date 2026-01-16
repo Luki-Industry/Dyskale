@@ -124,7 +124,7 @@ Dans le salon console configuré :
 Le bot affiche automatiquement :
 - **🟢 Serveur EN LIGNE** : Avec nombre de joueurs et liste
 - **🔴 Serveur HORS LIGNE** : Quand le serveur s'arrête
-- **Mise à jour** : Toutes les 5 minutes
+- **Mise à jour** : Toutes les 30 secondes
 - **Timestamp** : Dernière mise à jour visible
 
 ## 🛠️ Commandes en jeu
