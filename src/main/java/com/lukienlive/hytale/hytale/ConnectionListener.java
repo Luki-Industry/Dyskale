@@ -23,8 +23,6 @@ public class ConnectionListener implements IEventListener {
     private static String PLAYER_LINKED_MESSAGE = "Joueur %s connecté (Discord lié: %s)";
     private static String PLAYER_UNLINKED_MESSAGE = "Joueur %s connecté (pas de compte Discord lié)";
 
-    private final Set<String> onlinePlayers = new HashSet<>();
-
     @Inject
     private Logger logger;
 
@@ -125,14 +123,12 @@ public class ConnectionListener implements IEventListener {
 
         if (discordId != null) {
             discordLogger.playerJoin(player.getUsername() + " (Discord lié)");
-            onlinePlayers.add(player.getUsername());
             roleSyncService.syncUser(player.getUuid(), discordId);
         }
     }
 
     private void onPlayerDisconnect(PlayerDisconnectEvent event) {
         var player = event.getPlayerRef();
-        onlinePlayers.remove(player.getUsername());
         discordLogger.playerLeave(player.getUsername());
     }
 }

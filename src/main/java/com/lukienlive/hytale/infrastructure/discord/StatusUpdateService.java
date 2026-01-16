@@ -143,7 +143,7 @@ public class StatusUpdateService {
                     .setColor(Color.GREEN)
                     .addField("👥 Joueurs", String.valueOf(playerCount), true)
                     .addField("⏱️ Uptime", uptime, true)
-                    .addField("💾 RAM", ramUsage, true)
+                    //.addField("💾 RAM", ramUsage, true)
                     .addField("📝 Liste des joueurs", playerList.length() > 1024 ?
                             playerList.substring(0, 1021) + "..." : playerList, false)
                     .setFooter("Dernière mise à jour")
