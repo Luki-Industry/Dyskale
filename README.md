@@ -10,7 +10,7 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 - **⚡ Commandes Discord** : Exécutez des commandes serveur depuis Discord
 - **📈 Statut du serveur** : Mise à jour automatique avec nombre de joueurs et liste
 - **🟢 Présence du bot** : Affiche "Watching X joueurs" en temps réel
-- **🔄 Synchronisation des rôles** : Synchronisation bidirectionnelle entre rôles Discord et groupes LuckPerms
+- **🔄 Synchronisation des rôles** : Synchronisation unidirectionnelle des rôles Discord vers Hytale
 - **🛠️ Commandes Hytale** : Gestion des liaisons directement en jeu (/discord)
 - **💾 Stockage JSON** : Sauvegarde automatique des comptes liés
 - **🔄 Configuration dynamique** : Ajout automatique des nouveaux paramètres
@@ -81,8 +81,8 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
 Le système de synchronisation permet de lier des rôles Discord à des groupes LuckPerms.
 
 - **Discord → Hytale** : Si un joueur reçoit un rôle sur Discord, il est ajouté au groupe LuckPerms correspondant.
-- **Hytale → Discord** : Si un joueur rejoint un groupe LuckPerms, il reçoit le rôle Discord correspondant.
-- **Suppression** : La suppression du rôle/groupe est aussi synchronisée dans les deux sens.
+- **Hytale → Discord** : Désactivé (les changements sur Hytale n'affectent pas Discord)
+- **Suppression** : La suppression du rôle Discord entraîne le retrait du groupe LuckPerms.
 
 ### Configuration du mapping
 
