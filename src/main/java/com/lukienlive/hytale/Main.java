@@ -8,6 +8,7 @@ import com.lukienlive.hytale.discord.DiscordBot;
 import com.lukienlive.hytale.discord.DiscordLogger;
 import com.lukienlive.hytale.discord.RoleSyncService;
 import com.lukienlive.hytale.hytale.ConnectionListener;
+import com.lukienlive.hytale.hytale.GameplayListener;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 import com.lukienlive.hytale.inject.HytaleInjector;
 import com.lukienlive.hytale.application.service.LinkService;
@@ -28,6 +29,9 @@ public class Main extends JavaPlugin {
 
     @Inject
     private ConnectionListener connectionListener;
+
+    @Inject
+    private GameplayListener gameplayListener;
 
     @Inject
     private DiscordBot discordBot;
@@ -69,6 +73,7 @@ public class Main extends JavaPlugin {
             linkService.init();
 
             this.connectionListener.Register(this.getEventRegistry());
+            this.gameplayListener.Register(this.getEventRegistry());
 
             // Enregistrement des commandes
             getCommandRegistry().registerCommand(injectorInstance.getInstance(DiscordCommand.class));
@@ -98,6 +103,7 @@ public class Main extends JavaPlugin {
         if (discordBot != null) {
             discordBot.shutdown();
         }
+
         if (linkService != null) {
             linkService.cleanExpiredCodes();
             linkService.shutdown();

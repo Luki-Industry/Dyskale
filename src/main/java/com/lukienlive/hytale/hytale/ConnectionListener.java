@@ -12,8 +12,6 @@ import com.lukienlive.hytale.discord.DiscordBot;
 import com.lukienlive.hytale.discord.DiscordLogger;
 import com.lukienlive.hytale.discord.RoleSyncService;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,8 +49,7 @@ public class ConnectionListener implements IEventListener {
 
     private void onPlayerSetupConnect(PlayerSetupConnectEvent event) {
         String username = event.getUsername();
-        String uuidString = event.getUuid().toString();
-        java.util.UUID uuid = event.getUuid();
+        UUID uuid = event.getUuid();
 
         boolean requireDiscord = config.get().getBoolean("Require_discord_link");
         String discordId = linkService.getDiscordId(uuid);
@@ -69,10 +66,13 @@ public class ConnectionListener implements IEventListener {
         if (discordId == null) {
             String linkCode = linkService.generateLinkCode(username, uuid);
 
+            String inviteLink = config.get().getString("Discord_invite_link");
+            if (inviteLink == null) inviteLink = "";
+
             String kickMessage = config.get().getString("Link_message")
                     .replace("{code}", linkCode)
                     .replace("{bot_username}", discordBot.getBotUsername())
-                    .replace("{discord_invite}", config.get().getString("Discord_invite_link"));
+                    .replace("{discord_invite}", inviteLink);
 
             this.logger.log(Level.WARNING, "Joueur " + username + " refusé: compte Discord non lié (code: " + linkCode + ")");
             discordLogger.warning("⛔ Connexion refusée: " + username + " - Code de liaison: " + linkCode);
@@ -85,8 +85,11 @@ public class ConnectionListener implements IEventListener {
         // Compte lié - vérifier si le joueur est toujours sur le serveur Discord
         boolean requireGuildMembership = config.get().getBoolean("Require_guild_membership");
         if (requireGuildMembership && !discordBot.isUserInGuild(discordId)) {
+            String inviteLink = config.get().getString("Discord_invite_link");
+            if (inviteLink == null) inviteLink = "";
+
             String kickMessage = config.get().getString("Not_in_guild_message")
-                    .replace("{discord_invite}", config.get().getString("Discord_invite_link"));
+                    .replace("{discord_invite}", inviteLink);
 
             this.logger.log(Level.WARNING, "Joueur " + username + " refusé: compte lié mais plus membre du Discord (ID: " + discordId + ")");
             discordLogger.warning("⛔ Connexion refusée: " + username + " - Compte lié mais plus sur le Discord");
@@ -101,8 +104,11 @@ public class ConnectionListener implements IEventListener {
         if (requireRole) {
             var requiredRoles = config.get().getStringList("Required_role_ids");
             if (!discordBot.hasRequiredRole(discordId, requiredRoles)) {
+                String inviteLink = config.get().getString("Discord_invite_link");
+                if (inviteLink == null) inviteLink = "";
+
                 String kickMessage = config.get().getString("Missing_role_message")
-                        .replace("{discord_invite}", config.get().getString("Discord_invite_link"));
+                        .replace("{discord_invite}", inviteLink);
 
                 this.logger.log(Level.WARNING, "Joueur " + username + " refusé: n'a pas le rôle requis (ID: " + discordId + ")");
                 discordLogger.warning("⛔ Connexion refusée: " + username + " - Rôle Discord manquant");
@@ -122,13 +128,12 @@ public class ConnectionListener implements IEventListener {
         String discordId = linkService.getDiscordId(player.getUuid());
 
         if (discordId != null) {
-            discordLogger.playerJoin(player.getUsername() + " (Discord lié)");
+            // Logging moved to GameplayListener
             roleSyncService.syncUser(player.getUuid(), discordId);
         }
     }
 
     private void onPlayerDisconnect(PlayerDisconnectEvent event) {
-        var player = event.getPlayerRef();
-        discordLogger.playerLeave(player.getUsername());
+        // Logging moved to GameplayListener
     }
 }

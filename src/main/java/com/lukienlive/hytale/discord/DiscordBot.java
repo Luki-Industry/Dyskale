@@ -173,7 +173,7 @@ public class DiscordBot extends ListenerAdapter {
         if (jda == null || jda.getSelfUser() == null) {
             return "Bot";
         }
-        return jda.getSelfUser().getName();
+        return jda.getSelfUser().getName() + "#" + jda.getSelfUser().getDiscriminator();
     }
 
     public boolean hasRequiredRole(String discordId, List<String> requiredRoleIds) {

@@ -1,6 +1,7 @@
 package com.lukienlive.hytale.discord;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -10,6 +11,7 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+@Singleton
 public class DiscordLogger extends Handler {
     private final Logger logger;
     private final DiscordBot discordBot;
@@ -120,6 +122,14 @@ public class DiscordLogger extends Handler {
 
     public void playerLeave(String playerName) {
         if (installed) discordBot.sendConsoleLog("🔴 **" + playerName + "** a quitté le serveur");
+    }
+
+    public void playerChat(String playerName, String message) {
+        if(installed) discordBot.sendConsoleLog("💬 **" + playerName + "**: " + message);
+    }
+
+    public void playerDeath(String message) {
+        if(installed) discordBot.sendConsoleLog("☠️ " + message);
     }
 
     // Le send direct n'est plus exposé publiquement pour encourager l'usage des méthodes typées ou du Handler global
