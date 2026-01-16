@@ -1,35 +1,32 @@
-package com.lukienlive.hytale;
+package com.lukienlive.hytale.infrastructure.persistence;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.lukienlive.hytale.domain.PendingLink;
+import com.lukienlive.hytale.domain.repository.LinkRepository;
 import com.lukienlive.hytale.inject.annotation.LinkedStorageFile;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
-public class LinkedStorage {
+public class JsonLinkRepository implements LinkRepository {
 
     private final File file;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Map<String, String> links = new ConcurrentHashMap<>();
 
-    // Codes de liaison temporaires : code -> {playerName, timestamp}
-    private final Map<String, PendingLink> pendingLinks = new ConcurrentHashMap<>();
-
     @Inject
-    public LinkedStorage(@LinkedStorageFile File file) {
+    public JsonLinkRepository(@LinkedStorageFile File file) {
         this.file = file;
     }
 
+    @Override
     public synchronized void load() {
         if (!file.exists()) return;
 
@@ -45,6 +42,7 @@ public class LinkedStorage {
         }
     }
 
+    @Override
     public synchronized void save() {
         if (file.getParentFile() != null) {
             file.getParentFile().mkdirs();
@@ -56,15 +54,24 @@ public class LinkedStorage {
         }
     }
 
-    public void link(String playerUuid, String discordId) {
-        links.put(playerUuid, discordId);
+    @Override
+    public void saveLink(UUID playerUuid, String discordId) {
+        links.put(playerUuid.toString(), discordId);
         save();
     }
 
-    public String getDiscordId(String playerUuid) {
-        return links.get(playerUuid);
+    @Override
+    public void removeLink(UUID playerUuid) {
+        links.remove(playerUuid.toString());
+        save();
     }
 
+    @Override
+    public String getDiscordId(UUID playerUuid) {
+        return links.get(playerUuid.toString());
+    }
+
+    @Override
     public UUID getPlayerUuid(String discordId) {
         for (Map.Entry<String, String> entry : links.entrySet()) {
             if (entry.getValue().equals(discordId)) {
@@ -76,24 +83,5 @@ public class LinkedStorage {
             }
         }
         return null;
-    }
-
-    public String generateLinkCode(String playerName, String playerUuid) {
-        String code = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        pendingLinks.put(code, new PendingLink(playerName, playerUuid));
-        return code;
-    }
-
-    public Optional<PendingLink> consumeLinkCode(String code) {
-        PendingLink link = pendingLinks.remove(code);
-        if (link == null || link.isExpired()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(link);
-    }
-
-    public void cleanExpiredCodes() {
-        pendingLinks.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 }

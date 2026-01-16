@@ -8,9 +8,10 @@ import com.lukienlive.hytale.inject.annotation.LinkedStorageFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.luckperms.api.LuckPerms;
+import com.lukienlive.hytale.infrastructure.persistence.JsonLinkRepository;
+import com.lukienlive.hytale.domain.repository.LinkRepository;
 
 import java.io.File;
-import java.util.logging.Logger;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -29,6 +30,7 @@ public class HytaleInjector extends AbstractModule {
         bind(Main.class).toInstance(main);
         bind(new TypeLiteral<Config<HytaleConfig>>() {}).toInstance(config);
         bind(LuckPerms.class).toInstance(luckPerms);
+        bind(LinkRepository.class).to(JsonLinkRepository.class);
     }
 
     @Provides

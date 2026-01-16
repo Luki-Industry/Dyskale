@@ -11,6 +11,7 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 - **📈 Statut du serveur** : Mise à jour automatique avec nombre de joueurs et liste
 - **🟢 Présence du bot** : Affiche "Watching X joueurs" en temps réel
 - **🔄 Synchronisation des rôles** : Synchronisation bidirectionnelle entre rôles Discord et groupes LuckPerms
+- **🛠️ Commandes Hytale** : Gestion des liaisons directement en jeu (/discord)
 - **💾 Stockage JSON** : Sauvegarde automatique des comptes liés
 - **🔄 Configuration dynamique** : Ajout automatique des nouveaux paramètres
 
@@ -126,27 +127,48 @@ Le bot affiche automatiquement :
 - **Mise à jour** : Toutes les 5 minutes
 - **Timestamp** : Dernière mise à jour visible
 
+## 🛠️ Commandes en jeu
+
+Le plugin ajoute la commande `/discord` pour gérer la synchronisation.
+
+| Commande | Permission | Description |
+|----------|------------|-------------|
+| `/discord sync <player>` | `discord.sync` | Force la synchronisation des rôles/groupes pour un joueur |
+| `/discord unlink <player>` | `discord.unlink` | Dissocie manuellement le compte Discord d'un joueur |
+| `/discord status <player>` | `discord.status` | Affiche le statut de liaison et l'ID Discord associé |
+| `/discord reload` | `discord.reload` | Recharge la configuration (config.json) sans redémarrer |
+
 ## 📁 Structure du projet
 
 ```
 Hytale-Plugin/
 ├── src/main/java/com/lukienlive/hytale/
 │   ├── Main.java                          # Point d'entrée du plugin
-│   ├── LinkedStorage.java                 # Stockage des comptes liés
+│   ├── application/
+│   │   └── service/
+│   │       └── LinkService.java          # Service de gestion des liaisons
+│   ├── domain/
+│   │   ├── PendingLink.java             # Modèle pour les codes de liaison
+│   │   └── repository/
+│   │       └── LinkRepository.java      # Interface de stockage
+│   ├── infrastructure/
+│   │   ├── discord/
+│   │   │   ├── ConsoleLogService.java   # Gestion des logs console
+│   │   │   └── StatusUpdateService.java # Gestion du statut bot/serveur
+│   │   └── persistence/
+│   │       └── JsonLinkRepository.java  # Implémentation stockage JSON
 │   ├── discord/
-│   │   ├── DiscordBot.java               # Gestion du bot Discord
-│   │   ├── DiscordLogHandler.java        # Redirection des logs
-│   │   └── DiscordCommandSender.java     # Exécution des commandes
+│   │   ├── DiscordBot.java               # Gestion du bot Discord & Events
+│   │   ├── DiscordLogHandler.java        # Handler pour les logs Java
+│   │   ├── DiscordCommandSender.java     # Exécution des commandes
+│   │   └── RoleSyncService.java          # Synchronisation des rôles
 │   ├── hytale/
 │   │   ├── ConnectionListener.java       # Événements de connexion
 │   │   ├── HytaleConfig.java            # Codec de configuration
-│   │   └── IEventListener.java          # Interface pour les listeners
+│   │   └── commands/                     # Commandes Hytale (/discord)
 │   ├── inject/
 │   │   ├── HytaleInjector.java          # Configuration Guice
 │   │   └── annotation/
-│   │       └── LinkedStorageFile.java   # Annotation pour le fichier de stockage
-│   └── domain/
-│       └── PendingLink.java             # Modèle pour les codes de liaison
 ├── build.gradle                          # Configuration Gradle
 └── README.md                             # Documentation
 ```

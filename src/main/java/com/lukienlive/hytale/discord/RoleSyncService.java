@@ -3,8 +3,8 @@ package com.lukienlive.hytale.discord;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.hypixel.hytale.server.core.util.Config;
-import com.lukienlive.hytale.LinkedStorage;
 import com.lukienlive.hytale.hytale.HytaleConfig;
+import com.lukienlive.hytale.application.service.LinkService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -34,7 +34,7 @@ public class RoleSyncService extends ListenerAdapter {
     private DiscordBot discordBot;
 
     @Inject
-    private LinkedStorage linkedStorage;
+    private LinkService linkService;
 
     @Inject
     private Config<HytaleConfig> config;
@@ -98,7 +98,7 @@ public class RoleSyncService extends ListenerAdapter {
             return;
         }
 
-        UUID playerUuid = linkedStorage.getPlayerUuid(member.getId());
+        UUID playerUuid = linkService.getPlayerUuid(member.getId());
         if (playerUuid == null) {
             return;
         }
@@ -159,7 +159,7 @@ public class RoleSyncService extends ListenerAdapter {
     }
 
     private void updateDiscordRole(UUID playerUuid, String groupName, boolean add) {
-        String discordId = linkedStorage.getDiscordId(playerUuid.toString());
+        String discordId = linkService.getDiscordId(playerUuid);
         if (discordId == null) return; // Not linked
 
         // Reverse lookup group -> role (O(N) but map is small)

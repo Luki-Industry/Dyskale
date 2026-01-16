@@ -7,12 +7,13 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerSetupConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.util.Config;
-import com.lukienlive.hytale.LinkedStorage;
+import com.lukienlive.hytale.application.service.LinkService;
 import com.lukienlive.hytale.discord.DiscordBot;
 import com.lukienlive.hytale.discord.DiscordLogger;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +31,7 @@ public class ConnectionListener implements IEventListener {
     private Config<HytaleConfig> config;
 
     @Inject
-    private LinkedStorage storage;
+    private LinkService linkService;
 
     @Inject
     private DiscordLogger discordLogger;
@@ -48,10 +49,11 @@ public class ConnectionListener implements IEventListener {
 
     private void onPlayerSetupConnect(PlayerSetupConnectEvent event) {
         String username = event.getUsername();
-        String uuid = event.getUuid().toString();
+        String uuidString = event.getUuid().toString();
+        java.util.UUID uuid = event.getUuid();
 
         boolean requireDiscord = config.get().getBoolean("Require_discord_link");
-        String discordId = storage.getDiscordId(uuid);
+        String discordId = linkService.getDiscordId(uuid);
 
         if (!requireDiscord) {
             String message = discordId != null ?
@@ -63,8 +65,8 @@ public class ConnectionListener implements IEventListener {
 
         // Compte non lié
         if (discordId == null) {
-            String linkCode = storage.generateLinkCode(username, uuid);
-            
+            String linkCode = linkService.generateLinkCode(username, uuid);
+
             String kickMessage = config.get().getString("Link_message")
                     .replace("{code}", linkCode)
                     .replace("{bot_username}", discordBot.getBotUsername())
@@ -115,7 +117,7 @@ public class ConnectionListener implements IEventListener {
 
     private void onPlayerConnect(PlayerConnectEvent event) {
         var player = event.getPlayerRef();
-        String discordId = storage.getDiscordId(player.getUuid().toString());
+        String discordId = linkService.getDiscordId(player.getUuid());
 
         if (discordId != null) {
             discordLogger.playerJoin(player.getUsername() + " (Discord lié)");

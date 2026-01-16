@@ -10,6 +10,8 @@ import com.lukienlive.hytale.discord.RoleSyncService;
 import com.lukienlive.hytale.hytale.ConnectionListener;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 import com.lukienlive.hytale.inject.HytaleInjector;
+import com.lukienlive.hytale.application.service.LinkService;
+import com.lukienlive.hytale.hytale.commands.DiscordCommand;
 import lombok.Getter;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -22,7 +24,7 @@ public class Main extends JavaPlugin {
     public static Main INSTANCE;
 
     @Inject
-    private LinkedStorage storage;
+    private LinkService linkService;
 
     @Inject
     private ConnectionListener connectionListener;
@@ -64,9 +66,12 @@ public class Main extends JavaPlugin {
             var injectorInstance = injector.createInjector();
             injectorInstance.injectMembers(this);
 
-            storage.load();
+            linkService.init();
 
             this.connectionListener.Register(this.getEventRegistry());
+
+            // Enregistrement des commandes
+            getCommandRegistry().registerCommand(injectorInstance.getInstance(DiscordCommand.class));
 
             getLogger().atInfo().log("Hytale Discord Plugin initialisé!");
 
@@ -93,9 +98,9 @@ public class Main extends JavaPlugin {
         if (discordBot != null) {
             discordBot.shutdown();
         }
-        if (storage != null) {
-            storage.cleanExpiredCodes();
-            storage.save();
+        if (linkService != null) {
+            linkService.cleanExpiredCodes();
+            linkService.shutdown();
         }
         getLogger().atInfo().log("Plugin arrêté.");
     }

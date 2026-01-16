@@ -91,6 +91,10 @@ public class HytaleConfig {
         return 0;
     }
 
+    public void set(String key, Object value) {
+        this.values.put(key, value);
+    }
+
     @SuppressWarnings("unchecked")
     public List<String> getStringList(String key) {
         Object value = values.get(key);
@@ -102,9 +106,5 @@ public class HytaleConfig {
             return Arrays.asList(str.split(","));
         }
         return new ArrayList<>();
-    }
-    
-    public void set(String key, Object value) {
-        values.put(key, value);
     }
 }
