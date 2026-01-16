@@ -74,8 +74,10 @@ public class DiscordBot extends ListenerAdapter {
                     GatewayIntent.DIRECT_MESSAGES)
                 .addEventListeners(this)
                 .build();
+            
+            jda.awaitReady();
 
-            this.logger.log(Level.INFO, "Bot Discord connecté avec succès!");
+            this.logger.log(Level.INFO, "Bot Discord connecté avec succès! (" + getBotUsername() + ")");
 
             startConsoleSender();
             startStatusUpdater();
@@ -150,6 +152,31 @@ public class DiscordBot extends ListenerAdapter {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public boolean isUserInGuild(String discordId) {
+        return getMemberById(discordId) != null;
+    }
+
+    public String getBotUsername() {
+        if (jda == null || jda.getSelfUser() == null) {
+            return "Bot";
+        }
+        return jda.getSelfUser().getName();
+    }
+
+    public boolean hasRequiredRole(String discordId, List<String> requiredRoleIds) {
+        if (requiredRoleIds == null || requiredRoleIds.isEmpty()) {
+            return true;
+        }
+
+        Member member = getMemberById(discordId);
+        if (member == null) {
+            return false;
+        }
+
+        return member.getRoles().stream()
+                .anyMatch(role -> requiredRoleIds.contains(role.getId()));
     }
 
     public void sendConsoleLog(String message) {

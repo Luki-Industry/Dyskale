@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerSetupConnectEven
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.LinkedStorage;
+import com.lukienlive.hytale.discord.DiscordBot;
 import com.lukienlive.hytale.discord.DiscordLogger;
 
 import java.util.HashSet;
@@ -34,6 +35,9 @@ public class ConnectionListener implements IEventListener {
     @Inject
     private DiscordLogger discordLogger;
 
+    @Inject
+    private DiscordBot discordBot;
+
     @Override
     public void Register(EventRegistry registry) {
         registry.register(PlayerSetupConnectEvent.class, this::onPlayerSetupConnect);
@@ -57,22 +61,56 @@ public class ConnectionListener implements IEventListener {
             return;
         }
 
+        // Compte non lié
         if (discordId == null) {
             String linkCode = storage.generateLinkCode(username, uuid);
-
-            String kickMessage = "Discord account required!\n\n" +
-                    "Your link code: " + linkCode + "\n\n" +
-                    "Send this code to the Discord bot in a private message.\n" +
-                    "(Code expires in 5 minutes)";
+            
+            String kickMessage = config.get().getString("Link_message")
+                    .replace("{code}", linkCode)
+                    .replace("{bot_username}", discordBot.getBotUsername())
+                    .replace("{discord_invite}", config.get().getString("Discord_invite_link"));
 
             this.logger.log(Level.WARNING, "Joueur " + username + " refusé: compte Discord non lié (code: " + linkCode + ")");
             discordLogger.warning("⛔ Connexion refusée: " + username + " - Code de liaison: " + linkCode);
 
             event.setReason(kickMessage);
             event.setCancelled(true);
-        } else {
-            this.logger.log(Level.INFO, "Joueur " + username + " autorisé (Discord: " + discordId + ")");
+            return;
         }
+
+        // Compte lié - vérifier si le joueur est toujours sur le serveur Discord
+        boolean requireGuildMembership = config.get().getBoolean("Require_guild_membership");
+        if (requireGuildMembership && !discordBot.isUserInGuild(discordId)) {
+            String kickMessage = config.get().getString("Not_in_guild_message")
+                    .replace("{discord_invite}", config.get().getString("Discord_invite_link"));
+
+            this.logger.log(Level.WARNING, "Joueur " + username + " refusé: compte lié mais plus membre du Discord (ID: " + discordId + ")");
+            discordLogger.warning("⛔ Connexion refusée: " + username + " - Compte lié mais plus sur le Discord");
+
+            event.setReason(kickMessage);
+            event.setCancelled(true);
+            return;
+        }
+
+        // Vérifier si le joueur a le rôle requis
+        boolean requireRole = config.get().getBoolean("Require_role");
+        if (requireRole) {
+            var requiredRoles = config.get().getStringList("Required_role_ids");
+            if (!discordBot.hasRequiredRole(discordId, requiredRoles)) {
+                String kickMessage = config.get().getString("Missing_role_message")
+                        .replace("{discord_invite}", config.get().getString("Discord_invite_link"));
+
+                this.logger.log(Level.WARNING, "Joueur " + username + " refusé: n'a pas le rôle requis (ID: " + discordId + ")");
+                discordLogger.warning("⛔ Connexion refusée: " + username + " - Rôle Discord manquant");
+
+                event.setReason(kickMessage);
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        // Tout est OK
+        this.logger.log(Level.INFO, "Joueur " + username + " autorisé (Discord: " + discordId + ")");
     }
 
     private void onPlayerConnect(PlayerConnectEvent event) {

@@ -4,7 +4,10 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HytaleConfig {
@@ -14,8 +17,14 @@ public class HytaleConfig {
         {
             put("Discord_token", "DISCORD_BOT_TOKEN");
             put("Guild_id", "YOUR_GUILD_ID_HERE");
+            put("Discord_invite_link", "https://discord.gg/VOTRE_INVITE");
+            put("Required_role_ids", "ROLE_ID_1,ROLE_ID_2");
             put("Require_discord_link", false);
-            put("Kick_message", "Vous devez lier votre compte Discord pour rejoindre ce serveur. Utilisez !link sur notre Discord.");
+            put("Require_guild_membership", true);
+            put("Require_role", false);
+            put("Link_message", "Compte Discord requis!\n\nVotre code de liaison: {code}\n\nEnvoyez ce code en message prive a {bot_username}\n(Le code expire dans 5 minutes)\n\nPas encore sur le Discord? Rejoignez-nous: {discord_invite}");
+            put("Not_in_guild_message", "Vous devez etre membre du serveur Discord!\n\nVotre compte est lie mais vous avez quitte le serveur Discord.\nRejoignez-nous pour acceder au serveur: {discord_invite}");
+            put("Missing_role_message", "Vous n'avez pas le role requis!\n\nVotre compte est lie mais vous n'avez pas le role necessaire sur le Discord.\nContactez un administrateur ou rejoignez: {discord_invite}");
             put("Console_channel_id", "YOUR_CHANNEL_ID_HERE");
             put("Status_channel_id", "YOUR_STATUS_CHANNEL_ID_HERE");
             put("Status_message_id", "");
@@ -79,6 +88,19 @@ public class HytaleConfig {
             return (Integer) value;
         }
         return 0;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getStringList(String key) {
+        Object value = values.get(key);
+        if (value instanceof String) {
+            String str = (String) value;
+            if (str.isEmpty()) {
+                return new ArrayList<>();
+            }
+            return Arrays.asList(str.split(","));
+        }
+        return new ArrayList<>();
     }
     
     public void set(String key, Object value) {
