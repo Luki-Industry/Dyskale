@@ -7,14 +7,17 @@ import com.lukienlive.hytale.hytale.HytaleConfig;
 import com.lukienlive.hytale.inject.annotation.LinkedStorageFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.luckperms.api.LuckPerms;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class HytaleInjector extends AbstractModule {
     private final Main main;
     private final Config<HytaleConfig> config;
+    private final LuckPerms luckPerms;
 
 
     public Injector createInjector() {
@@ -25,6 +28,7 @@ public class HytaleInjector extends AbstractModule {
     protected void configure() {
         bind(Main.class).toInstance(main);
         bind(new TypeLiteral<Config<HytaleConfig>>() {}).toInstance(config);
+        bind(LuckPerms.class).toInstance(luckPerms);
     }
 
     @Provides

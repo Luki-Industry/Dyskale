@@ -15,7 +15,9 @@
     }
   ],
   "ServerVersion": "*",
-  "Dependencies": {},
+  "Dependencies": {
+    "LuckPerms:LuckPerms": ">=1.0.0"
+  },
   "OptionalDependencies": {},
   "LoadBefore": {},
   "DisabledByDefault": false,

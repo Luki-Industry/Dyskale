@@ -31,6 +31,7 @@ public class HytaleConfig {
             put("Enable_console_logs", true);
             put("Enable_bot_status", false);
             put("Enable_status_message", false);
+            put("Role_Group_Mapping", "");
         }
     };
 

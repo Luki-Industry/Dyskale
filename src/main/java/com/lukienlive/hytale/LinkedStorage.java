@@ -65,6 +65,19 @@ public class LinkedStorage {
         return links.get(playerUuid);
     }
 
+    public UUID getPlayerUuid(String discordId) {
+        for (Map.Entry<String, String> entry : links.entrySet()) {
+            if (entry.getValue().equals(discordId)) {
+                try {
+                    return UUID.fromString(entry.getKey());
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
     public String generateLinkCode(String playerName, String playerUuid) {
         String code = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         pendingLinks.put(code, new PendingLink(playerName, playerUuid));

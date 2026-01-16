@@ -6,10 +6,13 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.discord.DiscordBot;
 import com.lukienlive.hytale.discord.DiscordLogger;
+import com.lukienlive.hytale.discord.RoleSyncService;
 import com.lukienlive.hytale.hytale.ConnectionListener;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 import com.lukienlive.hytale.inject.HytaleInjector;
 import lombok.Getter;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
 
 import javax.annotation.Nonnull;
 
@@ -30,6 +33,9 @@ public class Main extends JavaPlugin {
     @Inject
     private DiscordLogger discordLogger;
 
+    @Inject
+    private RoleSyncService roleSyncService;
+
     public Main(@Nonnull JavaPluginInit init) {
         super(init);
 
@@ -38,28 +44,43 @@ public class Main extends JavaPlugin {
 
     @Override
     protected void setup() {
-        INSTANCE = this;
+        try {
+            INSTANCE = this;
 
-        this.config.load().join();
-        this.config.save().join();
-
-        HytaleInjector injector = new HytaleInjector(this, config);
-        var injectorInstance = injector.createInjector();
-        injectorInstance.injectMembers(this);
-
-        storage.load();
-
-        this.connectionListener.Register(this.getEventRegistry());
-
-        getLogger().atInfo().log("Hytale Discord Plugin initialisé!");
+            this.config.load().join();
+            this.config.save().join();
+        }
+        catch (Exception e) {
+            getLogger().atSevere().log("Erreur lors de l'initialisation du plugin: " + e.getMessage());
+        }
     }
 
     @Override
     protected void start() {
-        if (!discordBot.start()) {
-            getLogger().atWarning().log("Le bot Discord n'a pas pu démarrer. Vérifiez votre configuration.");
-        } else if (config.get().getBoolean("Enable_console_logs")){
-            discordLogger.install();
+        try {
+            LuckPerms api = LuckPermsProvider.get();
+
+            HytaleInjector injector = new HytaleInjector(this, config, api);
+            var injectorInstance = injector.createInjector();
+            injectorInstance.injectMembers(this);
+
+            storage.load();
+
+            this.connectionListener.Register(this.getEventRegistry());
+
+            getLogger().atInfo().log("Hytale Discord Plugin initialisé!");
+
+            if (!discordBot.start()) {
+                getLogger().atWarning().log("Le bot Discord n'a pas pu démarrer. Vérifiez votre configuration.");
+            } else {
+                if (config.get().getBoolean("Enable_console_logs")){
+                    discordLogger.install();
+                }
+                roleSyncService.init();
+            }
+        }
+        catch (Exception e) {
+            getLogger().atSevere().log("Erreur lors du démarrage du plugin: " + e.getMessage());
         }
     }
 

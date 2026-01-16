@@ -25,6 +25,7 @@ import java.awt.Color;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -52,6 +53,9 @@ public class DiscordBot extends ListenerAdapter {
     @Inject
     private Config<HytaleConfig> config;
 
+    @Inject
+    private RoleSyncService roleSyncService;
+
     public boolean start() {
         try {
             String token = config.get().getString("Discord_token");
@@ -71,7 +75,8 @@ public class DiscordBot extends ListenerAdapter {
             jda = JDABuilder.createLight(token, 
                     GatewayIntent.GUILD_MESSAGES, 
                     GatewayIntent.MESSAGE_CONTENT,
-                    GatewayIntent.DIRECT_MESSAGES)
+                    GatewayIntent.DIRECT_MESSAGES,
+                    GatewayIntent.GUILD_MEMBERS)
                 .addEventListeners(this)
                 .build();
             
@@ -90,6 +95,17 @@ public class DiscordBot extends ListenerAdapter {
             this.logger.log(Level.SEVERE, "Erreur lors de la connexion au bot Discord", e);
             return false;
         }
+    }
+
+    public JDA getJda() {
+        return jda;
+    }
+
+    public Guild getGuild() {
+        if (jda == null) return null;
+        String guildId = config.get().getString("Guild_id");
+        if (guildId == null || guildId.equals("VOTRE_GUILD_ID_HERE")) return null;
+        return jda.getGuildById(guildId);
     }
 
     @Override
@@ -118,6 +134,9 @@ public class DiscordBot extends ListenerAdapter {
             storage.consumeLinkCode(message)
                     .ifPresentOrElse(pending -> {
                         storage.link(pending.getPlayerUuid(), discordId);
+
+                        // Sync roles immediately upon linking
+                        roleSyncService.syncUser(UUID.fromString(pending.getPlayerUuid()), discordId);
 
                         event.getChannel().sendMessage(
                                 "✅ **Compte lié avec succès!**\n\n" +
