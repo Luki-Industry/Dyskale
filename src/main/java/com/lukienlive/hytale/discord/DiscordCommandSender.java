@@ -28,7 +28,7 @@ public class DiscordCommandSender implements CommandSender {
         if (content != null && !content.isEmpty()) {
             event.getChannel().sendMessage(content).queue();
             // Aussi l'envoyer dans les logs
-            logger.send("📤 " + content);
+            logger.info("📤 " + content);
         }
     }
     

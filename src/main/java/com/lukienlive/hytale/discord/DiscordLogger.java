@@ -2,139 +2,246 @@ package com.lukienlive.hytale.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.hypixel.hytale.server.core.util.Config;
+import com.lukienlive.hytale.application.service.ConsoleLogCaptureService;
+import com.lukienlive.hytale.domain.console.LogLevel;
+import com.lukienlive.hytale.hytale.HytaleConfig;
+import com.lukienlive.hytale.infrastructure.console.HytaleLoggerBridge;
+import com.lukienlive.hytale.infrastructure.discord.DiscordConsoleLogHandler;
+import com.lukienlive.hytale.infrastructure.discord.EventLogService;
+import com.lukienlive.hytale.infrastructure.discord.PrivateMessageDetectorHandler;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * Main orchestrator for Discord console logging.
+ * This class ties together all the Clean Architecture layers:
+ * - Domain (LogEntry, LogLevel, ConsoleLogHandler interface)
+ * - Application (ConsoleLogCaptureService)
+ * - Infrastructure (JavaLoggingBridge, DiscordConsoleLogHandler)
+ */
 @Singleton
-public class DiscordLogger extends Handler {
+public class DiscordLogger {
     private final Logger logger;
     private final DiscordBot discordBot;
-
+    private final Config<HytaleConfig> config;
+    private final EventLogService eventLogService;
+    
+    private ConsoleLogCaptureService captureService;
+    private HytaleLoggerBridge hytaleLoggerBridge;
+    private DiscordConsoleLogHandler discordHandler;
+    private ScheduledExecutorService logProcessorExecutor;
+    
     private boolean installed = false;
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
     @Inject
-    public DiscordLogger(Logger logger, DiscordBot discordBot) {
+    public DiscordLogger(Logger logger, DiscordBot discordBot, Config<HytaleConfig> config, EventLogService eventLogService) {
         this.logger = logger;
         this.discordBot = discordBot;
+        this.config = config;
+        this.eventLogService = eventLogService;
     }
 
+    /**
+     * Install the console logging system.
+     * This sets up the complete pipeline from Java logging to Discord.
+     */
     public void install() {
-        if (installed) return;
-
-        // S'attacher au logger racine
-        Logger rootLogger = Logger.getLogger("");
-        rootLogger.addHandler(this);
-
-        installed = true;
-        logger.info("Installation du DiscordLogger...");
-        info("🚀 Plugin DiscordLink actif - Logs disponibles ici");
-    }
-
-    public void uninstall() {
-        if (!installed) return;
-
-        Logger rootLogger = Logger.getLogger("");
-        rootLogger.removeHandler(this);
-
-        info("🛑 Plugin DiscordLink arrêté");
-        installed = false;
-    }
-
-    @Override
-    public void publish(LogRecord record) {
-        if (!installed || discordBot == null) return;
-
-        // Éviter les boucles infinies (logs venant de nos propres services)
-        if (record.getLoggerName() != null && (
-                record.getLoggerName().contains("DiscordBot") ||
-                record.getLoggerName().contains("jda") || // JDA logs
-                record.getLoggerName().contains("ConsoleLogService")
-        )) {
+        if (installed) {
             return;
         }
 
         try {
-            StringBuilder message = new StringBuilder();
+            // Initialize the application service
+            captureService = new ConsoleLogCaptureService();
+            
+            // Configure minimum log level from config
+            String configuredLevel = config.get().getString("Console_minimum_log_level");
+            LogLevel minimumLevel = LogLevel.fromString(configuredLevel);
+            captureService.setMinimumLogLevel(minimumLevel);
 
-            // Format timestamp
-            message.append("[").append(dateFormat.format(new Date(record.getMillis()))).append("] ");
+            // Create the Discord console handler
+            discordHandler = new DiscordConsoleLogHandler(config, logger);
+            discordHandler.setJda(discordBot.getJda());
+            
+            // Create the private message detector handler
+            PrivateMessageDetectorHandler pmHandler = new PrivateMessageDetectorHandler(eventLogService);
+            
+            // Register handlers with the capture service
+            captureService.registerHandler(discordHandler);
+            captureService.registerHandler(pmHandler);
 
-            // Level icon
-            String level = record.getLevel().getName();
-            if (level.equals("SEVERE")) message.append("🔴 ");
-            else if (level.equals("WARNING")) message.append("⚠️ ");
-            else if (level.equals("INFO")) message.append("ℹ️ ");
+            // Create and install the Hytale logging bridge
+            hytaleLoggerBridge = new HytaleLoggerBridge(captureService);
+            hytaleLoggerBridge.install();
 
-            message.append("[").append(level).append("] ");
+            // Start scheduled log processor (every 50ms)
+            logProcessorExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "console-log-processor");
+                t.setDaemon(true);
+                return t;
+            });
+            logProcessorExecutor.scheduleAtFixedRate(
+                hytaleLoggerBridge::processLogs,
+                50L, // Initial delay (ms)
+                50L, // Period (ms) - every tick
+                TimeUnit.MILLISECONDS
+            );
 
-            // Message
-            message.append(record.getMessage());
+            // Start the capture service
+            captureService.start();
 
-            // Exception trace if any
-            if (record.getThrown() != null) {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                record.getThrown().printStackTrace(pw);
-                message.append("\n").append(sw.toString());
-            }
-
-            discordBot.sendConsoleLog(message.toString());
+            installed = true;
+            logger.info("✅ Système de capture de logs console installé");
+            logger.info("   - Niveau minimum: " + minimumLevel.getName());
+            logger.info("   - Handlers actifs: " + captureService.getActiveHandlerCount());
+            
+            // Send a test message to Discord
+            info("🚀 Plugin DiscordLink actif - Logs console maintenant disponibles sur Discord");
+            
         } catch (Exception e) {
-            // Ne pas logger l'erreur ici pour éviter une boucle infinie
+            logger.severe("❌ Erreur lors de l'installation du système de logging: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    @Override
-    public void flush() {
-    }
+    /**
+     * Uninstall the console logging system.
+     * Cleans up all resources and removes handlers.
+     */
+    public void uninstall() {
+        if (!installed) {
+            return;
+        }
 
-    @Override
-    public void close() throws SecurityException {
-        uninstall();
+        try {
+            info("🛑 Arrêt du système de capture de logs console");
+            
+            // Stop log processor
+            if (logProcessorExecutor != null) {
+                logProcessorExecutor.shutdown();
+                try {
+                    if (!logProcessorExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                        logProcessorExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    logProcessorExecutor.shutdownNow();
+                }
+            }
+            
+            // Stop the capture service
+            if (captureService != null) {
+                captureService.stop();
+            }
+
+            // Uninstall the Hytale logging bridge
+            if (hytaleLoggerBridge != null) {
+                hytaleLoggerBridge.uninstall();
+            }
+
+            installed = false;
+            logger.info("✅ Système de capture de logs console désinstallé");
+            
+        } catch (Exception e) {
+            logger.severe("❌ Erreur lors de la désinstallation du système de logging: " + e.getMessage());
+        }
     }
 
     /* ===================== */
-    /* Méthodes de log       */
+    /* Convenience Methods   */
     /* ===================== */
 
+    /**
+     * Send an info message directly to Discord (bypasses normal logging).
+     */
     public void info(String message) {
-        if (installed) discordBot.sendConsoleLog("ℹ️ " + message);
+        if (installed && discordHandler != null) {
+            discordBot.sendConsoleLog("ℹ️ " + message);
+        }
     }
 
+    /**
+     * Send a warning message to Events channel (for connection refusals, etc.).
+     */
     public void warning(String message) {
-        if (installed) discordBot.sendConsoleLog("⚠️ " + message);
+        discordBot.sendEventLog("⚠️ " + message);
     }
 
+    /**
+     * Send an error message directly to Discord (bypasses normal logging).
+     */
     public void error(String message) {
-        if (installed) discordBot.sendConsoleLog("🔴 " + message);
+        if (installed && discordHandler != null) {
+            discordBot.sendConsoleLog("🔴 " + message);
+        }
     }
 
+    /**
+     * Log when a player joins the server (sent to Events channel).
+     */
     public void playerJoin(String playerName) {
-        if (installed) discordBot.sendConsoleLog("🟢 **" + playerName + "** a rejoint le serveur");
+        discordBot.sendEventLog("🟢 **" + playerName + "** a rejoint le serveur");
     }
 
+    /**
+     * Log when a player leaves the server (sent to Events channel).
+     */
     public void playerLeave(String playerName) {
-        if (installed) discordBot.sendConsoleLog("🔴 **" + playerName + "** a quitté le serveur");
+        discordBot.sendEventLog("🔴 **" + playerName + "** a quitté le serveur");
     }
 
+    /**
+     * Log a chat message from a player (sent to Events channel).
+     */
     public void playerChat(String playerName, String message) {
-        if(installed) discordBot.sendConsoleLog("💬 **" + playerName + "**: " + message);
+        discordBot.sendEventLog("💬 **" + playerName + "**: " + message);
     }
 
+    /**
+     * Log a player death message (sent to Events channel).
+     */
     public void playerDeath(String message) {
-        if(installed) discordBot.sendConsoleLog("☠️ " + message);
+        discordBot.sendEventLog("☠️ " + message);
     }
 
-    // Le send direct n'est plus exposé publiquement pour encourager l'usage des méthodes typées ou du Handler global
-    void send(String message) {
-        if (!installed) return;
-        discordBot.sendConsoleLog(message);
+    /**
+     * Update the JDA instance when Discord bot reconnects.
+     * This is important if the bot needs to reconnect.
+     */
+    public void updateJda() {
+        if (discordHandler != null) {
+            discordHandler.setJda(discordBot.getJda());
+        }
+    }
+
+    /**
+     * Check if the logging system is currently installed and active.
+     */
+    public boolean isInstalled() {
+        return installed;
+    }
+
+    /**
+     * Get statistics about the current logging system.
+     */
+    public String getStats() {
+        if (!installed || captureService == null) {
+            return "Console logging is not active";
+        }
+
+        return String.format(
+            "Console Logging Stats:\n" +
+            "  - Status: %s\n" +
+            "  - Minimum Level: %s\n" +
+            "  - Active Handlers: %d\n" +
+            "  - Queue Size: %d",
+            captureService.isEnabled() ? "Active" : "Inactive",
+            captureService.getMinimumLogLevel().getName(),
+            captureService.getActiveHandlerCount(),
+            discordHandler != null ? discordHandler.getQueueSize() : 0
+        );
     }
 }

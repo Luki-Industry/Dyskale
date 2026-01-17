@@ -13,6 +13,7 @@ import com.lukienlive.hytale.hytale.HytaleConfig;
 import com.lukienlive.hytale.inject.HytaleInjector;
 import com.lukienlive.hytale.application.service.LinkService;
 import com.lukienlive.hytale.hytale.commands.DiscordCommand;
+import com.lukienlive.hytale.hytale.commands.OuihebergCommand;
 import lombok.Getter;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -77,6 +78,7 @@ public class Main extends JavaPlugin {
 
             // Enregistrement des commandes
             getCommandRegistry().registerCommand(injectorInstance.getInstance(DiscordCommand.class));
+            getCommandRegistry().registerCommand(new OuihebergCommand());
 
             getLogger().atInfo().log("Hytale Discord Plugin initialisé!");
 

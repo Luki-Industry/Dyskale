@@ -26,9 +26,11 @@ public class HytaleConfig {
             put("Not_in_guild_message", "Vous devez etre membre du serveur Discord!\n\nVotre compte est lie mais vous avez quitte le serveur Discord.\nRejoignez-nous pour acceder au serveur: {discord_invite}");
             put("Missing_role_message", "Vous n'avez pas le role requis!\n\nVotre compte est lie mais vous n'avez pas le role necessaire sur le Discord.\nContactez un administrateur ou rejoignez: {discord_invite}");
             put("Console_channel_id", "YOUR_CHANNEL_ID_HERE");
+            put("Events_channel_id", "YOUR_EVENTS_CHANNEL_ID_HERE");
             put("Status_channel_id", "YOUR_STATUS_CHANNEL_ID_HERE");
             put("Status_message_id", "");
             put("Enable_console_logs", true);
+            put("Console_minimum_log_level", "INFO");
             put("Enable_bot_status", false);
             put("Enable_status_message", false);
             put("Role_Group_Mapping", "");

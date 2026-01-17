@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lukienlive.hytale.infrastructure.discord.ConsoleLogService;
+import com.lukienlive.hytale.infrastructure.discord.EventLogService;
 import com.lukienlive.hytale.infrastructure.discord.StatusUpdateService;
 
 @Singleton
@@ -44,6 +45,9 @@ public class DiscordBot extends ListenerAdapter {
 
     @Inject
     private ConsoleLogService consoleLogService;
+
+    @Inject
+    private EventLogService eventLogService;
 
     @Inject
     private StatusUpdateService statusUpdateService;
@@ -72,8 +76,13 @@ public class DiscordBot extends ListenerAdapter {
 
             this.logger.log(Level.INFO, "Bot Discord connecté avec succès! (" + getBotUsername() + ")");
 
+            // Note: ConsoleLogService is now deprecated in favor of the new DiscordConsoleLogHandler
+            // which is managed by DiscordLogger. We keep this for backward compatibility.
             consoleLogService.setJda(jda);
             consoleLogService.start();
+
+            eventLogService.setJda(jda);
+            eventLogService.start();
 
             statusUpdateService.setJda(jda);
             statusUpdateService.start();
@@ -194,6 +203,10 @@ public class DiscordBot extends ListenerAdapter {
         consoleLogService.offerLog(message);
     }
 
+    public void sendEventLog(String message) {
+        eventLogService.sendEvent(message);
+    }
+
     private void executeServerCommand(String command, MessageReceivedEvent event) {
 
         // Log de la commande
@@ -231,6 +244,7 @@ public class DiscordBot extends ListenerAdapter {
     public void shutdown() {
         try {
             statusUpdateService.shutdown();
+            eventLogService.shutdown();
             consoleLogService.shutdown();
 
             jda.shutdown();

@@ -6,7 +6,12 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 
 - **🔐 Liaison Discord obligatoire** : Force les joueurs à lier leur compte Discord avant de rejoindre
 - **🤖 Liaison automatique par MP** : Les joueurs reçoivent un code unique à envoyer au bot Discord
-- **📊 Console Discord** : Tous les logs du serveur dans un salon Discord
+- **📊 Console Discord complète** : Capture TOUS les logs du serveur et les envoie vers Discord en temps réel
+  - Batching intelligent pour éviter le rate limiting
+  - Formatage ANSI avec couleurs
+  - Filtrage par niveau de log (SEVERE, WARNING, INFO, DEBUG, TRACE)
+  - Support complet des stack traces
+  - Architecture Clean Architecture testable et extensible
 - **⚡ Commandes Discord** : Exécutez des commandes serveur depuis Discord
 - **📈 Statut du serveur** : Mise à jour automatique avec nombre de joueurs et liste
 - **🟢 Présence du bot** : Affiche "Watching X joueurs" en temps réel
@@ -72,6 +77,7 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
 | `Status_channel_id` | ID du salon pour le statut | `YOUR_STATUS_CHANNEL_ID_HERE` |
 | `Status_message_id` | ID du message de statut (auto) | `""` |
 | `Enable_console_logs` | Activer les logs Discord | `true` |
+| `Console_minimum_log_level` | Niveau minimum des logs (SEVERE, WARNING, INFO, DEBUG, TRACE) | `INFO` |
 | `Enable_bot_status` | Activer "Watching X joueurs" | `false` |
 | `Enable_status_message` | Activer le message de statut | `false` |
 | `Role_Group_Mapping` | Correspondance Rôles <-> Groupes | `""` |
@@ -173,6 +179,64 @@ Hytale-Plugin/
 └── README.md                             # Documentation
 ```
 
+## � Console Discord avancée
+
+Le plugin dispose d'un **système de capture de logs complet** qui envoie TOUS les logs du serveur vers Discord.
+
+### Caractéristiques
+
+- ✅ **Capture complète** : Tous les logs Java sont interceptés automatiquement
+- ✅ **Filtrage intelligent** : Configurez le niveau minimum (INFO, WARNING, SEVERE, etc.)
+- ✅ **Formatage élégant** : Messages avec icônes, couleurs ANSI et timestamps
+- ✅ **Performance optimale** : Batching des messages pour éviter le spam
+- ✅ **Stack traces** : Support complet des exceptions avec formatage
+- ✅ **Architecture Clean** : Code testable et extensible
+
+### Configuration des niveaux de log
+
+```json
+{
+  "Console_minimum_log_level": "INFO"
+}
+```
+
+**Niveaux disponibles** (du plus strict au plus verbeux) :
+- `SEVERE` : Uniquement les erreurs critiques
+- `WARNING` : Avertissements et erreurs
+- `INFO` : Informations générales (recommandé)
+- `DEBUG` : Messages de débogage
+- `TRACE` : Tous les messages (très verbeux)
+
+### Exemple de sortie Discord
+
+```ansi
+[14:30:45] ℹ️ [INFO] [Main] 🚀 Plugin DiscordLink démarré
+[14:30:46] 🟢 **Steve** a rejoint le serveur
+[14:31:02] 💬 **Steve**: Hello!
+[14:32:15] ⚠️ [WARNING] [WorldManager] Faible performance
+[14:35:00] 🔴 [SEVERE] [Database] Erreur de connexion
+java.sql.SQLException: Connection refused
+    at Database.connect(Database.java:42)
+```
+
+### Messages personnalisés
+
+Vous pouvez envoyer des messages custom depuis votre code :
+
+```java
+@Inject
+private DiscordLogger discordLogger;
+
+discordLogger.info("Message info");
+discordLogger.warning("Message warning");
+discordLogger.error("Message erreur");
+discordLogger.playerJoin("PlayerName");
+discordLogger.playerLeave("PlayerName");
+```
+
+📖 **Documentation complète** : [docs/CONSOLE_LOGGING.md](docs/CONSOLE_LOGGING.md)  
+🏗️ **Architecture technique** : [docs/ARCHITECTURE_CONSOLE_LOGGING.md](docs/ARCHITECTURE_CONSOLE_LOGGING.md)
+
 ## 🛠️ Développement
 
 ### Compilation
@@ -180,6 +244,15 @@ Hytale-Plugin/
 ```powershell
 .\gradlew clean shadowJar
 ```
+
+### Architecture
+
+Ce plugin suit les principes de **Clean Architecture** :
+- **Domain Layer** : Logique métier pure (pas de dépendances externes)
+- **Application Layer** : Services et use cases
+- **Infrastructure Layer** : Implémentations concrètes (Hytale, Discord)
+
+Voir [.github/copilot-instructions.md](.github/copilot-instructions.md) pour les guidelines de développement.
 
 ### Dépendances
 
