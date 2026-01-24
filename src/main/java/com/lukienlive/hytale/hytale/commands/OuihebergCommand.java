@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Command to display Ouiheberg hosting promotional information.
- * Accessible to all players.
+ * Accessible to all players without permission requirements.
  */
 public class OuihebergCommand extends CommandBase {
 
@@ -18,29 +18,34 @@ public class OuihebergCommand extends CommandBase {
 
     @Override
     protected boolean canGeneratePermission() {
-        return false; // Accessible à tous, pas de permission requise
+        return false; // Accessible à tous
     }
 
     @Override
     protected void executeSync(@Nonnull CommandContext context) {
-        // En-tête
-        context.sender().sendMessage(Message.raw("§6§l═══════════════════════════════"));
-        context.sender().sendMessage(Message.raw("§e§l🎁 Promotion Ouiheberg 🎁"));
-        context.sender().sendMessage(Message.raw(""));
+        // Composition du message complet
+        Message message = Message.raw("Promotion OuiHeberg !")
+                .color("#FFD700")
+                .bold(true);
         
-        // Message principal
-        context.sender().sendMessage(Message.raw("§a15% de réduction sur tout le site ! §c❤"));
-        context.sender().sendMessage(Message.raw("§7§o(sauf noms de domaine)"));
-        context.sender().sendMessage(Message.raw(""));
+        message.insert(Message.raw("\n15% de réduction sur tout le site")
+                .color("#00FF00"));
         
-        // Lien
-        context.sender().sendMessage(Message.raw("§b🔗 Lien: §e§nhttps://www.ouiheberg.com/panel/aff.php?aff=326"));
+        message.insert(Message.raw("\nAvec ce lien: ")
+                .color("#00FFFF"));
         
-        // Code promo
-        context.sender().sendMessage(Message.raw("§b🏷️ Code: §6§lLUKI15"));
+        message.insert(Message.raw("https://www.ouiheberg.com/panel/aff.php?aff=326")
+                .color("#FFFF00")
+                .link("https://www.ouiheberg.com/panel/aff.php?aff=326"));
         
-        // Pied
-        context.sender().sendMessage(Message.raw(""));
-        context.sender().sendMessage(Message.raw("§6§l═══════════════════════════════"));
+        message.insert(Message.raw("\nEt avec le code: ")
+                .color("#00FFFF"));
+        
+        message.insert(Message.raw("LUKI15")
+                .color("#FFA500")
+                .bold(true));
+        
+        context.sender().sendMessage(message);
     }
 }
+
