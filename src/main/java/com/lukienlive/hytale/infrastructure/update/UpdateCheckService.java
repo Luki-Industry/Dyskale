@@ -4,9 +4,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,7 +22,6 @@ import java.util.logging.Logger;
 
 @Singleton
 public class UpdateCheckService {
-    private static final String CURRENT_VERSION = "1.0.0";
     private static final long INITIAL_DELAY_MINUTES = 1;
 
     private final Config<HytaleConfig> config;
@@ -29,7 +30,7 @@ public class UpdateCheckService {
     private ScheduledExecutorService executor;
 
     @Inject
-    public UpdateCheckService(Config<HytaleConfig> config, Logger logger) {
+    public UpdateCheckService(Config<HytaleConfig> config, @Named("Dyskale") Logger logger) {
         this.config = config;
         this.logger = logger;
         this.httpClient = HttpClient.newBuilder()
@@ -93,10 +94,11 @@ public class UpdateCheckService {
         try {
             JsonObject release = JsonParser.parseString(response.body()).getAsJsonObject();
             String latestVersion = normalizeVersion(release.get("tag_name").getAsString());
-            if (compareVersions(latestVersion, CURRENT_VERSION) > 0) {
+            String currentVersion = readCurrentVersion();
+            if (compareVersions(latestVersion, currentVersion) > 0) {
                 String releaseUrl = release.has("html_url") ? release.get("html_url").getAsString() : "";
                 logger.log(Level.INFO, "Nouvelle version Dyskale disponible: " + latestVersion
-                        + " (version actuelle: " + CURRENT_VERSION + ") " + releaseUrl);
+                        + " (version actuelle: " + currentVersion + ") " + releaseUrl);
             }
         } catch (RuntimeException e) {
             logger.log(Level.FINE, "Réponse GitHub invalide pour le check Dyskale", e);
@@ -125,5 +127,19 @@ public class UpdateCheckService {
     private int parseVersionPart(String part) {
         String numericPart = part.split("[-+]")[0];
         return Integer.parseInt(numericPart);
+    }
+
+    private String readCurrentVersion() {
+        try (var stream = UpdateCheckService.class.getResourceAsStream("/manifest.json")) {
+            if (stream == null) {
+                return "0.0.0";
+            }
+
+            JsonObject manifest = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
+            return normalizeVersion(manifest.get("Version").getAsString());
+        } catch (Exception e) {
+            logger.log(Level.FINE, "Version Dyskale introuvable dans manifest.json", e);
+            return "0.0.0";
+        }
     }
 }

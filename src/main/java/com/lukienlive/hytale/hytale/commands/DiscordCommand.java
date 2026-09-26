@@ -15,7 +15,8 @@ public class DiscordCommand extends AbstractCommandCollection {
             RoleSyncService roleSyncService,
             Config<HytaleConfig> config
     ) {
-        super("discord", "Commandes d'administration Discord");
+        super("dyskale", "Commandes d'administration Dyskale");
+        addAliases("discord");
 
         addSubCommand(new SyncCommand(linkService, roleSyncService));
         addSubCommand(new UnlinkCommand(linkService));

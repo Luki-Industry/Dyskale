@@ -1,6 +1,7 @@
 package com.lukienlive.hytale.inject;
 
 import com.google.inject.*;
+import com.google.inject.name.Names;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.Main;
 import com.lukienlive.hytale.hytale.HytaleConfig;
@@ -31,7 +32,7 @@ public class HytaleInjector extends AbstractModule {
         bind(Main.class).toInstance(main);
         bind(new TypeLiteral<Config<HytaleConfig>>() {}).toInstance(config);
         bind(LuckPerms.class).toInstance(luckPerms);
-        bind(Logger.class).toInstance(Logger.getLogger("Dyskale"));
+        bind(Logger.class).annotatedWith(Names.named("Dyskale")).toInstance(Logger.getLogger("Dyskale"));
         bind(LinkRepository.class).to(JsonLinkRepository.class);
     }
 

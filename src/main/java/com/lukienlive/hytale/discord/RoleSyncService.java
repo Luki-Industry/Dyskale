@@ -2,6 +2,7 @@ package com.lukienlive.hytale.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 import com.lukienlive.hytale.application.service.LinkService;
@@ -35,6 +36,7 @@ public class RoleSyncService extends ListenerAdapter {
     private Config<HytaleConfig> config;
 
     @Inject
+    @Named("Dyskale")
     private Logger logger;
 
     private final Map<String, String> roleToGroupMap = new HashMap<>(); // RoleID -> GroupName

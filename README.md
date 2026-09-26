@@ -16,7 +16,7 @@ Plugin Hytale pour connecter Discord, les joueurs et les outils serveur avec vé
 - **📈 Statut du serveur** : Mise à jour automatique avec nombre de joueurs et liste
 - **🟢 Présence du bot** : Affiche "Watching X joueurs" en temps réel
 - **🔄 Synchronisation des rôles** : Synchronisation unidirectionnelle des rôles Discord vers Hytale
-- **🛠️ Commandes Hytale** : Gestion des liaisons directement en jeu (/discord)
+- **🛠️ Commandes Hytale** : Gestion des liaisons directement en jeu (/dyskale)
 - **💾 Stockage JSON** : Sauvegarde automatique des comptes liés
 - **🔄 Configuration dynamique** : Ajout automatique des nouveaux paramètres
 
@@ -48,12 +48,12 @@ Pour afficher les versions détectées :
 1. Copier `build/libs/Dyskale-1.0.0.jar` dans le dossier `mods/` du serveur
 2. Démarrer le serveur
 3. Arrêter le serveur (génération de la config)
-4. Configurer `mods/com.lukienlive_Dyskale/config.json`
+4. Configurer `mods/LukiEnLive_Dyskale/config.json`
 5. Redémarrer le serveur
 
 ## ⚙️ Configuration
 
-Fichier : `mods/com.lukienlive_Dyskale/config.json`
+Fichier : `mods/LukiEnLive_Dyskale/config.json`
 
 ```json
 {
@@ -149,14 +149,14 @@ Le bot affiche automatiquement :
 
 ## 🛠️ Commandes en jeu
 
-Le plugin ajoute la commande `/discord` pour gérer la synchronisation.
+Le plugin ajoute la commande `/dyskale` pour gérer la synchronisation. `/discord` reste disponible comme alias de compatibilité.
 
 | Commande | Permission | Description |
 |----------|------------|-------------|
-| `/discord sync <player>` | `discord.sync` | Force la synchronisation des rôles/groupes pour un joueur |
-| `/discord unlink <player>` | `discord.unlink` | Dissocie manuellement le compte Discord d'un joueur |
-| `/discord status <player>` | `discord.status` | Affiche le statut de liaison et l'ID Discord associé |
-| `/discord reload` | `discord.reload` | Recharge la configuration (config.json) sans redémarrer |
+| `/dyskale sync <player>` | `dyskale.sync` | Force la synchronisation des rôles/groupes pour un joueur |
+| `/dyskale unlink <player>` | `dyskale.unlink` | Dissocie manuellement le compte Discord d'un joueur |
+| `/dyskale status <player>` | `dyskale.status` | Affiche le statut de liaison et l'ID Discord associé |
+| `/dyskale reload` | `dyskale.reload` | Recharge la configuration (config.json) sans redémarrer |
 
 ## 📁 Structure du projet
 
@@ -185,7 +185,7 @@ Dyskale/
 │   ├── hytale/
 │   │   ├── ConnectionListener.java       # Événements de connexion
 │   │   ├── HytaleConfig.java            # Codec de configuration
-│   │   └── commands/                     # Commandes Hytale (/discord)
+│   │   └── commands/                     # Commandes Hytale (/dyskale)
 │   ├── inject/
 │   │   ├── HytaleInjector.java          # Configuration Guice
 │   │   └── annotation/
@@ -258,6 +258,12 @@ discordLogger.playerLeave("PlayerName");
 ```powershell
 .\gradlew clean shadowJar
 ```
+
+### CI et releases
+
+Chaque push sur `main` et chaque pull request déclenche le workflow CI. Il compile Dyskale avec l'API Hytale publiée sur Maven et conserve le jar comme artefact.
+
+Pour publier une version, mettre à jour la version Gradle et `manifest.json`, puis pousser un tag correspondant, par exemple `v1.0.0`. Le workflow vérifie la cohérence des versions, compile le jar et crée automatiquement la release GitHub.
 
 ### Architecture
 

@@ -58,7 +58,6 @@ public class Main extends JavaPlugin {
     protected void setup() {
         try {
             INSTANCE = this;
-            migrateLegacyDataDirectory();
 
             this.config.load().join();
             this.config.save().join();
@@ -86,14 +85,14 @@ public class Main extends JavaPlugin {
             getCommandRegistry().registerCommand(injectorInstance.getInstance(DiscordCommand.class));
             getCommandRegistry().registerCommand(new OuihebergCommand());
 
-                getLogger().atInfo().log("Plugin Dyskale initialisé - version plugin 1.0.0, serveur Hytale "
+            getLogger().atInfo().log("Plugin Dyskale initialisé - version plugin 1.0.0, serveur Hytale "
                     + getHytaleServerVersion());
             updateCheckService.start();
 
             if (!discordBot.start()) {
                 getLogger().atWarning().log("Le bot Discord n'a pas pu démarrer. Vérifiez votre configuration.");
             } else {
-                if (config.get().getBoolean("Enable_console_logs")){
+                if (config.get().getBoolean("Enable_console_logs")) {
                     discordLogger.install();
                 }
                 roleSyncService.init();
@@ -124,22 +123,6 @@ public class Main extends JavaPlugin {
         getLogger().atInfo().log("Plugin arrêté.");
 
         this.config.save().join();
-    }
-
-    private void migrateLegacyDataDirectory() {
-        var currentDirectory = getDataDirectory();
-        var legacyDirectory = currentDirectory.getParent().resolve("com.lukienlive_DiscordLink");
-
-        if (!java.nio.file.Files.exists(legacyDirectory) || java.nio.file.Files.exists(currentDirectory)) {
-            return;
-        }
-
-        try {
-            java.nio.file.Files.move(legacyDirectory, currentDirectory);
-            getLogger().atInfo().log("Ancienne configuration DiscordLink migrée vers Dyskale.");
-        } catch (java.io.IOException e) {
-            getLogger().atWarning().log("Impossible de migrer l'ancienne configuration DiscordLink: " + e.getMessage());
-        }
     }
 
     private String getHytaleServerVersion() {

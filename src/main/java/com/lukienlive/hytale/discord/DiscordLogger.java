@@ -2,6 +2,7 @@ package com.lukienlive.hytale.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.application.service.ConsoleLogCaptureService;
 import com.lukienlive.hytale.domain.console.LogLevel;
@@ -38,7 +39,7 @@ public class DiscordLogger {
     private boolean installed = false;
 
     @Inject
-    public DiscordLogger(Logger logger, DiscordBot discordBot, Config<HytaleConfig> config, EventLogService eventLogService) {
+    public DiscordLogger(@Named("Dyskale") Logger logger, DiscordBot discordBot, Config<HytaleConfig> config, EventLogService eventLogService) {
         this.logger = logger;
         this.discordBot = discordBot;
         this.config = config;

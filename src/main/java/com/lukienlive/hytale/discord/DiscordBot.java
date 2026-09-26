@@ -2,6 +2,7 @@ package com.lukienlive.hytale.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.Main;
 import com.lukienlive.hytale.hytale.HytaleConfig;
@@ -32,6 +33,7 @@ public class DiscordBot extends ListenerAdapter {
     private JDA jda;
 
     @Inject
+    @Named("Dyskale")
     private Logger logger;
 
     @Inject
@@ -54,6 +56,10 @@ public class DiscordBot extends ListenerAdapter {
 
     public boolean start() {
         try {
+            System.setProperty("net.dv8tion.jda.disableFallbackLogger", "true");
+            System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "off");
+            System.setProperty("com.lukienlive.hytale.shaded.slf4j.simpleLogger.defaultLogLevel", "off");
+
             String token = config.get().getString("Discord_token");
 
             if (token == null || token.isEmpty()) {

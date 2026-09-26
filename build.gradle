@@ -18,10 +18,20 @@ java {
 
 repositories {
     mavenCentral()
+    if (providers.gradleProperty('hytale.useMaven').isPresent()) {
+        maven {
+            name = 'hytale'
+            url = uri('https://maven.hytale.com/release')
+        }
+    }
 }
 
 dependencies {
-    compileOnly files('libs/HytaleServer.jar')
+    if (providers.gradleProperty('hytale.useMaven').isPresent()) {
+        compileOnly 'com.hypixel.hytale:Server:+'
+    } else {
+        compileOnly files('libs/HytaleServer.jar')
+    }
 
     implementation 'net.dv8tion:JDA:6.3.0'
     implementation 'org.slf4j:slf4j-simple:2.0.17'
@@ -94,6 +104,11 @@ tasks.register('setupHytaleApi') {
     description = 'Copie HytaleServer.jar dans le dossier libs'
 
     doLast {
+        if (providers.gradleProperty('hytale.useMaven').isPresent()) {
+            println 'Mode CI: API Hytale résolue depuis le dépôt Maven.'
+            return
+        }
+
         if (file('libs/HytaleServer.jar').exists()) {
             println "Version API locale actuelle: ${readHytaleVersion.call(file('libs/HytaleServer.jar'))}"
         }

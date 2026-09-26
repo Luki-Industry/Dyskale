@@ -2,6 +2,7 @@ package com.lukienlive.hytale.infrastructure.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.Main;
@@ -35,6 +36,7 @@ public class StatusUpdateService {
     private Config<HytaleConfig> config;
 
     @Inject
+    @Named("Dyskale")
     private Logger logger;
 
     public void start() {

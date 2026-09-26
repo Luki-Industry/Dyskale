@@ -1,5 +1,5 @@
 {
-  "Group": "com.lukienlive",
+  "Group": "LukiEnLive",
   "Name": "Dyskale",
   "Version": "1.0.0",
   "Description": "Plugin Hytale pour connecter Discord, les joueurs et les outils serveur",
@@ -14,7 +14,7 @@
       "Url": "https://sorax5.github.io/"
     }
   ],
-  "ServerVersion": "*",
+  "ServerVersion": "=0.6.8",
   "Dependencies": {
     "LuckPerms:LuckPerms": ">=1.0.0"
   },

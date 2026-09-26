@@ -2,6 +2,7 @@ package com.lukienlive.hytale.infrastructure.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 import net.dv8tion.jda.api.JDA;
@@ -36,7 +37,7 @@ public class EventLogService {
     private volatile boolean running = false;
 
     @Inject
-    public EventLogService(Logger logger, Config<HytaleConfig> config) {
+    public EventLogService(@Named("Dyskale") Logger logger, Config<HytaleConfig> config) {
         this.logger = logger;
         this.config = config;
         this.eventQueue = new LinkedBlockingQueue<>();

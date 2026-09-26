@@ -2,6 +2,7 @@ package com.lukienlive.hytale.infrastructure.discord;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.server.core.util.Config;
 import com.lukienlive.hytale.hytale.HytaleConfig;
 import lombok.Setter;
@@ -25,6 +26,7 @@ public class ConsoleLogService {
     private Config<HytaleConfig> config;
 
     @Inject
+    @Named("Dyskale")
     private Logger logger; // Java logger to log errors of this service
 
     public void start() {

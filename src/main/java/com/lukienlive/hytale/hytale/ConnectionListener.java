@@ -2,6 +2,7 @@ package com.lukienlive.hytale.hytale;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.hypixel.hytale.event.EventRegistry;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
@@ -23,6 +24,7 @@ public class ConnectionListener implements IEventListener {
     private static String PLAYER_UNLINKED_MESSAGE = "Joueur %s connecté (pas de compte Discord lié)";
 
     @Inject
+    @Named("Dyskale")
     private Logger logger;
 
     @Inject
