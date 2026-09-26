@@ -3,10 +3,12 @@
   "Name": "Dyskale",
   "Version": "1.0.0",
   "Description": "Plugin Hytale pour connecter Discord, les joueurs et les outils serveur",
+  "Website": "https://github.com/Luki-Industry/Dyskale",
   "Main": "com.lukienlive.hytale.Main",
   "Authors": [
     {
-      "Name": "Luki"
+      "Name": "LukiEnLive",
+      "Url": "https://github.com/LukiEnLive"
     },
     {
       "Name": "SoraxDubbing",

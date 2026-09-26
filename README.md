@@ -23,7 +23,7 @@ Plugin Hytale pour connecter Discord, les joueurs et les outils serveur avec vé
 ## 📋 Prérequis
 
 - **Java 25** (JDK-25)
-- **Gradle 8.0+**
+- **Gradle Wrapper inclus** (aucune installation Gradle nécessaire)
 - **Serveur Hytale** avec HytaleServer.jar
 - **Bot Discord** avec token
 
@@ -59,8 +59,12 @@ Fichier : `mods/LukiEnLive_Dyskale/config.json`
 {
   "Discord_token": "VOTRE_TOKEN_BOT_DISCORD",
   "Guild_id": "VOTRE_ID_SERVEUR_DISCORD",
+  "Discord_invite_link": "https://discord.gg/VOTRE_INVITE",
+  "Required_role_ids": "ROLE_ID_1,ROLE_ID_2",
   "Require_discord_link": false,
-  "Kick_message": "Vous devez lier votre compte Discord pour rejoindre ce serveur. Utilisez !link sur notre Discord.",
+  "Require_guild_membership": true,
+  "Require_role": false,
+  "Link_message": "Compte Discord requis!\n\nVotre code de liaison: {code}",
   "Console_channel_id": "VOTRE_ID_SALON_CONSOLE",
   "Status_channel_id": "VOTRE_ID_SALON_STATUT",
   "Status_message_id": "",
@@ -80,8 +84,12 @@ Fichier : `mods/LukiEnLive_Dyskale/config.json`
 |-----------|-------------|-------------------|
 | `Discord_token` | Token du bot Discord | `DISCORD_BOT_TOKEN` |
 | `Guild_id` | ID du serveur Discord | `YOUR_GUILD_ID_HERE` |
+| `Discord_invite_link` | Lien d'invitation Discord | `https://discord.gg/VOTRE_INVITE` |
+| `Required_role_ids` | IDs des rôles Discord requis | `ROLE_ID_1,ROLE_ID_2` |
 | `Require_discord_link` | Obliger la liaison Discord | `false` |
-| `Kick_message` | Message affiché aux joueurs non liés | Message par défaut |
+| `Require_guild_membership` | Exiger que le joueur soit membre du serveur Discord | `true` |
+| `Require_role` | Exiger un rôle Discord | `false` |
+| `Link_message` | Message affiché aux joueurs non liés | Message par défaut |
 | `Console_channel_id` | ID du salon pour les logs | `YOUR_CHANNEL_ID_HERE` |
 | `Status_channel_id` | ID du salon pour le statut | `YOUR_STATUS_CHANNEL_ID_HERE` |
 | `Status_message_id` | ID du message de statut (auto) | `""` |
@@ -179,7 +187,7 @@ Dyskale/
 │   │       └── JsonLinkRepository.java  # Implémentation stockage JSON
 │   ├── discord/
 │   │   ├── DiscordBot.java               # Gestion du bot Discord & Events
-│   │   ├── DiscordLogHandler.java        # Handler pour les logs Java
+│   │   ├── DiscordLogger.java            # Orchestrateur des logs Discord
 │   │   ├── DiscordCommandSender.java     # Exécution des commandes
 │   │   └── RoleSyncService.java          # Synchronisation des rôles
 │   ├── hytale/
@@ -193,7 +201,7 @@ Dyskale/
 └── README.md                             # Documentation
 ```
 
-## � Console Discord avancée
+## Console Discord avancée
 
 Le plugin dispose d'un **système de capture de logs complet** qui envoie TOUS les logs du serveur vers Discord.
 
@@ -248,9 +256,6 @@ discordLogger.playerJoin("PlayerName");
 discordLogger.playerLeave("PlayerName");
 ```
 
-📖 **Documentation complète** : [docs/CONSOLE_LOGGING.md](docs/CONSOLE_LOGGING.md)  
-🏗️ **Architecture technique** : [docs/ARCHITECTURE_CONSOLE_LOGGING.md](docs/ARCHITECTURE_CONSOLE_LOGGING.md)
-
 ## 🛠️ Développement
 
 ### Compilation
@@ -286,11 +291,12 @@ Voir [.github/copilot-instructions.md](.github/copilot-instructions.md) pour les
 
 MIT License - Voir le fichier LICENSE pour plus de détails.
 
-## 👤 Auteur
+## 👤 Auteurs
 
-**Luki**
-- Discord: [Votre serveur Discord]
-- GitHub: [@lukienlive](https://github.com/lukienlive)
+**LukiEnLive** et **SoraxDubbing** — co-auteurs du projet
+
+- GitHub: [@LukiEnLive](https://github.com/LukiEnLive)
+- GitHub: [@Sorax5](https://github.com/Sorax5)
 
 ## 🤝 Contribution
 
