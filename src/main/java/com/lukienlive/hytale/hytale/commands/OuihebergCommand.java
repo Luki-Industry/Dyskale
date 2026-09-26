@@ -14,11 +14,7 @@ public class OuihebergCommand extends CommandBase {
 
     public OuihebergCommand() {
         super("oh", "Affiche la promotion Ouiheberg");
-    }
-
-    @Override
-    protected boolean canGeneratePermission() {
-        return false; // Accessible à tous
+                requireNoPermission();
     }
 
     @Override

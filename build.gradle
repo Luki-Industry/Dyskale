@@ -35,14 +35,24 @@ dependencies {
     compileOnly 'net.luckperms:api:5.4'
 }
 
-def installHytaleApi = { ->
-    def libsDir = file('libs')
-    if (!libsDir.exists()) {
-        libsDir.mkdirs()
+def readHytaleVersion = { File serverJar ->
+    if (!serverJar.exists()) {
+        return 'unknown'
     }
 
-    if (new File(libsDir, 'HytaleServer.jar').exists()) {
-        return true
+    def jarFile = new java.util.jar.JarFile(serverJar)
+    try {
+        return jarFile.manifest?.mainAttributes?.getValue('Implementation-Version') ?: 'unknown'
+    } finally {
+        jarFile.close()
+    }
+}
+
+def installHytaleApi = { ->
+    def libsDir = file('libs')
+    def destinationFile = new File(libsDir, 'HytaleServer.jar')
+    if (!libsDir.exists()) {
+        libsDir.mkdirs()
     }
 
     def possiblePaths = []
@@ -56,17 +66,23 @@ def installHytaleApi = { ->
 
     def sourceFile = possiblePaths.find { it.exists() }
 
-    if (sourceFile) {
-        println "Serveur trouvé: ${sourceFile}"
-        copy {
-            from sourceFile
-            into libsDir
-            rename { 'HytaleServer.jar' }
-        }
-        println "API Hytale installée dans le dossier libs"
+    if (sourceFile == null) {
+        return destinationFile.exists()
+    }
+
+    if (destinationFile.exists() && java.nio.file.Files.mismatch(sourceFile.toPath(), destinationFile.toPath()) == -1) {
+        println "API Hytale déjà à jour: ${readHytaleVersion.call(destinationFile)}"
         return true
     }
-    return false
+
+    println "Serveur trouvé: ${sourceFile}"
+    copy {
+        from sourceFile
+        into libsDir
+        rename { 'HytaleServer.jar' }
+    }
+    println "API Hytale mise à jour: ${readHytaleVersion.call(destinationFile)}"
+    return true
 }
 
 if (!file('libs/HytaleServer.jar').exists()) {
@@ -79,8 +95,7 @@ tasks.register('setupHytaleApi') {
 
     doLast {
         if (file('libs/HytaleServer.jar').exists()) {
-            println "HytaleServer.jar est déjà présent dans libs/"
-            return
+            println "Version API locale actuelle: ${readHytaleVersion.call(file('libs/HytaleServer.jar'))}"
         }
 
         if (!installHytaleApi()) {
@@ -97,6 +112,23 @@ shadowJar {
     mergeServiceFiles()
 
     relocate 'org.slf4j', 'com.lukienlive.hytale.shaded.slf4j'
+
+    doFirst {
+        manifest.attributes(
+                'Dyskale-Built-Against-Hytale': readHytaleVersion.call(file('libs/HytaleServer.jar'))
+        )
+    }
+}
+
+tasks.register('printHytaleServerInfo') {
+    group = 'hytale'
+    description = 'Affiche les versions des API Hytale installée et utilisée par le projet'
+
+    doLast {
+        def installedJar = file("${System.getenv('APPDATA')}/Hytale/install/release/package/game/latest/Server/HytaleServer.jar")
+        println "API de compilation: ${readHytaleVersion.call(file('libs/HytaleServer.jar'))}"
+        println "Serveur Hytale installé: ${readHytaleVersion.call(installedJar)}"
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

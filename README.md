@@ -35,7 +35,13 @@ Plugin Hytale pour connecter Discord, les joueurs et les outils serveur avec vé
 .\gradlew shadowJar
 ```
 
-Le JAR sera généré dans `build/libs/Dyskale-1.0.0.jar`.
+Le build compare automatiquement `libs/HytaleServer.jar` avec la version Hytale installée localement et la met à jour si son contenu est différent. La version utilisée est inscrite dans le manifest du jar Dyskale.
+
+Pour afficher les versions détectées :
+
+```powershell
+.\gradlew printHytaleServerInfo
+```
 
 ### 2. Installation sur le serveur
 
@@ -87,6 +93,8 @@ Fichier : `mods/com.lukienlive_Dyskale/config.json`
 | `Enable_update_check` | Vérifier les nouvelles releases GitHub | `true` |
 | `Update_repository` | Dépôt GitHub au format `organisation/projet` | `Luki-Industry/Dyskale` |
 | `Update_check_interval_hours` | Intervalle minimal entre deux vérifications | `24` |
+
+Au démarrage, Dyskale affiche la version du serveur Hytale utilisé. La compatibilité réelle dépend de cette version et des API présentes dans le jar installé.
 
 ## 🔄 Synchronisation des rôles
 

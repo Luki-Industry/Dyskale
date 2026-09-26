@@ -21,11 +21,6 @@ public class ReloadCommand extends AbstractAsyncCommand {
     }
 
     @Override
-    protected boolean canGeneratePermission() {
-        return true;
-    }
-
-    @Override
     @Nonnull
     protected CompletableFuture<Void> executeAsync(@Nonnull CommandContext context) {
         context.sender().sendMessage(Message.raw("§eRechargement de la configuration..."));

@@ -3,6 +3,7 @@ package com.lukienlive.hytale.hytale;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.hypixel.hytale.event.EventRegistry;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerSetupConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
@@ -77,7 +78,7 @@ public class ConnectionListener implements IEventListener {
             this.logger.log(Level.WARNING, "Joueur " + username + " refusé: compte Discord non lié (code: " + linkCode + ")");
             discordLogger.warning("⛔ Connexion refusée: " + username + " - Code de liaison: " + linkCode);
 
-            event.setReason(kickMessage);
+            event.setReason(Message.raw(kickMessage));
             event.setCancelled(true);
             return;
         }
@@ -94,7 +95,7 @@ public class ConnectionListener implements IEventListener {
             this.logger.log(Level.WARNING, "Joueur " + username + " refusé: compte lié mais plus membre du Discord (ID: " + discordId + ")");
             discordLogger.warning("⛔ Connexion refusée: " + username + " - Compte lié mais plus sur le Discord");
 
-            event.setReason(kickMessage);
+            event.setReason(Message.raw(kickMessage));
             event.setCancelled(true);
             return;
         }
@@ -113,7 +114,7 @@ public class ConnectionListener implements IEventListener {
                 this.logger.log(Level.WARNING, "Joueur " + username + " refusé: n'a pas le rôle requis (ID: " + discordId + ")");
                 discordLogger.warning("⛔ Connexion refusée: " + username + " - Rôle Discord manquant");
 
-                event.setReason(kickMessage);
+                event.setReason(Message.raw(kickMessage));
                 event.setCancelled(true);
                 return;
             }

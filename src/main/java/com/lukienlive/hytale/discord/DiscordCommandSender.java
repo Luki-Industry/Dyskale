@@ -33,7 +33,7 @@ public class DiscordCommandSender implements CommandSender {
     }
     
     @Override
-    public String getDisplayName() {
+    public String getUsername() {
         return "Discord:" + event.getAuthor().getName();
     }
     

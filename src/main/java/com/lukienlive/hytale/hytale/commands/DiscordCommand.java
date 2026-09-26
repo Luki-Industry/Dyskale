@@ -23,9 +23,5 @@ public class DiscordCommand extends AbstractCommandCollection {
         addSubCommand(new ReloadCommand(config));
     }
 
-    @Override
-    protected boolean canGeneratePermission() {
-        return true;
-    }
 }
 

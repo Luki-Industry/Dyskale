@@ -1,6 +1,7 @@
 package com.lukienlive.hytale;
 
 import com.google.inject.Inject;
+import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.util.Config;
@@ -85,7 +86,8 @@ public class Main extends JavaPlugin {
             getCommandRegistry().registerCommand(injectorInstance.getInstance(DiscordCommand.class));
             getCommandRegistry().registerCommand(new OuihebergCommand());
 
-            getLogger().atInfo().log("Plugin Dyskale initialisé!");
+                getLogger().atInfo().log("Plugin Dyskale initialisé - version plugin 1.0.0, serveur Hytale "
+                    + getHytaleServerVersion());
             updateCheckService.start();
 
             if (!discordBot.start()) {
@@ -138,5 +140,10 @@ public class Main extends JavaPlugin {
         } catch (java.io.IOException e) {
             getLogger().atWarning().log("Impossible de migrer l'ancienne configuration DiscordLink: " + e.getMessage());
         }
+    }
+
+    private String getHytaleServerVersion() {
+        String version = HytaleServer.class.getPackage().getImplementationVersion();
+        return version != null ? version : "inconnue";
     }
 }

@@ -29,11 +29,6 @@ public class SyncCommand extends AbstractAsyncCommand {
     }
 
     @Override
-    protected boolean canGeneratePermission() {
-        return true;
-    }
-
-    @Override
     @Nonnull
     protected CompletableFuture<Void> executeAsync(@Nonnull CommandContext context) {
         String playerName = playerArg.get(context);
