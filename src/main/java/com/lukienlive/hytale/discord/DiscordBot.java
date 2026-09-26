@@ -247,6 +247,10 @@ public class DiscordBot extends ListenerAdapter {
             eventLogService.shutdown();
             consoleLogService.shutdown();
 
+            if (jda == null) {
+                return;
+            }
+
             jda.shutdown();
             if (!jda.awaitShutdown(Duration.ofSeconds(30))) {
                 jda.shutdownNow();
@@ -255,6 +259,7 @@ public class DiscordBot extends ListenerAdapter {
             this.logger.log(Level.INFO, "Bot Discord déconnecté avec succès.");
         }
         catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             this.logger.log(Level.WARNING, "La fermeture du bot Discord a été interrompue", e);
         }
     }

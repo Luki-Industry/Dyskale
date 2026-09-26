@@ -48,3 +48,9 @@ build/
 bin/
 run/
 /libs/HytaleServer.jar
+
+# Local credentials and server state
+.env
+*.db
+*.sqlite
+*.sqlite3

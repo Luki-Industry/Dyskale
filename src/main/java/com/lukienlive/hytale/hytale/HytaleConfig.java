@@ -34,6 +34,9 @@ public class HytaleConfig {
             put("Enable_bot_status", false);
             put("Enable_status_message", false);
             put("Role_Group_Mapping", "");
+            put("Enable_update_check", true);
+            put("Update_repository", "Luki-Industry/Dyskale");
+            put("Update_check_interval_hours", 24);
         }
     };
 

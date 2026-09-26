@@ -12,6 +12,7 @@ import com.lukienlive.hytale.infrastructure.persistence.JsonLinkRepository;
 import com.lukienlive.hytale.domain.repository.LinkRepository;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -30,6 +31,7 @@ public class HytaleInjector extends AbstractModule {
         bind(Main.class).toInstance(main);
         bind(new TypeLiteral<Config<HytaleConfig>>() {}).toInstance(config);
         bind(LuckPerms.class).toInstance(luckPerms);
+        bind(Logger.class).toInstance(Logger.getLogger("Dyskale"));
         bind(LinkRepository.class).to(JsonLinkRepository.class);
     }
 

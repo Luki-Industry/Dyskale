@@ -1,6 +1,6 @@
-# Hytale Discord Link Plugin
+# Dyskale
 
-Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec système de vérification automatique, console Discord et statut en temps réel.
+Plugin Hytale pour connecter Discord, les joueurs et les outils serveur avec vérification automatique, console Discord et statut en temps réel.
 
 ## 🌟 Fonctionnalités
 
@@ -35,19 +35,19 @@ Plugin Hytale permettant de lier les comptes Discord aux joueurs du serveur avec
 .\gradlew shadowJar
 ```
 
-Le JAR sera généré dans `build/libs/Hytale-Plugin-1.0.0.jar`.
+Le JAR sera généré dans `build/libs/Dyskale-1.0.0.jar`.
 
 ### 2. Installation sur le serveur
 
-1. Copier `build/libs/Hytale-Plugin-1.0.0.jar` dans le dossier `mods/` du serveur
+1. Copier `build/libs/Dyskale-1.0.0.jar` dans le dossier `mods/` du serveur
 2. Démarrer le serveur
 3. Arrêter le serveur (génération de la config)
-4. Configurer `mods/LukienLive_DiscordLink/config.json`
+4. Configurer `mods/com.lukienlive_Dyskale/config.json`
 5. Redémarrer le serveur
 
 ## ⚙️ Configuration
 
-Fichier : `mods/LukienLive_DiscordLink/config.json`
+Fichier : `mods/com.lukienlive_Dyskale/config.json`
 
 ```json
 {
@@ -61,7 +61,10 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
   "Enable_console_logs": true,
   "Enable_bot_status": true,
   "Enable_status_message": true,
-  "Role_Group_Mapping": "ROLE_ID_1:GROUP_NAME_1,ROLE_ID_2:GROUP_NAME_2"
+  "Role_Group_Mapping": "ROLE_ID_1:GROUP_NAME_1,ROLE_ID_2:GROUP_NAME_2",
+  "Enable_update_check": true,
+  "Update_repository": "Luki-Industry/Dyskale",
+  "Update_check_interval_hours": 24
 }
 ```
 
@@ -81,6 +84,9 @@ Fichier : `mods/LukienLive_DiscordLink/config.json`
 | `Enable_bot_status` | Activer "Watching X joueurs" | `false` |
 | `Enable_status_message` | Activer le message de statut | `false` |
 | `Role_Group_Mapping` | Correspondance Rôles <-> Groupes | `""` |
+| `Enable_update_check` | Vérifier les nouvelles releases GitHub | `true` |
+| `Update_repository` | Dépôt GitHub au format `organisation/projet` | `Luki-Industry/Dyskale` |
+| `Update_check_interval_hours` | Intervalle minimal entre deux vérifications | `24` |
 
 ## 🔄 Synchronisation des rôles
 
@@ -147,7 +153,7 @@ Le plugin ajoute la commande `/discord` pour gérer la synchronisation.
 ## 📁 Structure du projet
 
 ```
-Hytale-Plugin/
+Dyskale/
 ├── src/main/java/com/lukienlive/hytale/
 │   ├── Main.java                          # Point d'entrée du plugin
 │   ├── application/
@@ -210,7 +216,7 @@ Le plugin dispose d'un **système de capture de logs complet** qui envoie TOUS l
 ### Exemple de sortie Discord
 
 ```ansi
-[14:30:45] ℹ️ [INFO] [Main] 🚀 Plugin DiscordLink démarré
+[14:30:45] ℹ️ [INFO] [Dyskale] 🚀 Plugin Dyskale démarré
 [14:30:46] 🟢 **Steve** a rejoint le serveur
 [14:31:02] 💬 **Steve**: Hello!
 [14:32:15] ⚠️ [WARNING] [WorldManager] Faible performance
@@ -257,7 +263,7 @@ Voir [.github/copilot-instructions.md](.github/copilot-instructions.md) pour les
 ### Dépendances
 
 - **JDA 6.3.0** : Librairie Discord
-- **slf4j-nop 2.0.17** : Logger pour JDA
+- **SLF4J 2.0.17** : Logger relocalisé pour JDA afin d'éviter les conflits avec le serveur
 - **Gson 2.13.2** : Sérialisation JSON
 - **Guice 7.0.0** : Injection de dépendances
 - **Lombok 1.18.42** : Réduction du boilerplate

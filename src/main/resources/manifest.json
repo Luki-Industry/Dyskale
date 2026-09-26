@@ -1,8 +1,8 @@
 {
   "Group": "com.lukienlive",
-  "Name": "DiscordLink",
+  "Name": "Dyskale",
   "Version": "1.0.0",
-  "Description": "Plugin pour synchroniser les rôles Discord et lier les comptes Discord/Hytale",
+  "Description": "Plugin Hytale pour connecter Discord, les joueurs et les outils serveur",
   "Main": "com.lukienlive.hytale.Main",
   "Authors": [
     {

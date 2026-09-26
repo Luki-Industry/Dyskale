@@ -24,7 +24,7 @@ dependencies {
     compileOnly files('libs/HytaleServer.jar')
 
     implementation 'net.dv8tion:JDA:6.3.0'
-    implementation 'org.slf4j:slf4j-nop:2.0.17'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
     implementation 'com.google.code.gson:gson:2.13.2'
 
     implementation 'com.google.inject:guice:7.0.0'
@@ -92,9 +92,11 @@ tasks.register('setupHytaleApi') {
 }
 
 shadowJar {
-    archiveBaseName.set('Hytale-Plugin')
+    archiveBaseName.set('Dyskale')
     archiveClassifier.set('')
     mergeServiceFiles()
+
+    relocate 'org.slf4j', 'com.lukienlive.hytale.shaded.slf4j'
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -141,7 +143,7 @@ tasks.register('runHytaleServer', JavaExec) {
 
         // Clean old jars
         modsDir.listFiles()?.each { file ->
-            if (file.name.startsWith("Hytale-Plugin") && file.name.endsWith(".jar")) {
+            if ((file.name.startsWith("Hytale-Plugin") || file.name.startsWith("Dyskale")) && file.name.endsWith(".jar")) {
                 file.delete()
             }
         }

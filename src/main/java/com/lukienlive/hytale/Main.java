@@ -14,6 +14,7 @@ import com.lukienlive.hytale.inject.HytaleInjector;
 import com.lukienlive.hytale.application.service.LinkService;
 import com.lukienlive.hytale.hytale.commands.DiscordCommand;
 import com.lukienlive.hytale.hytale.commands.OuihebergCommand;
+import com.lukienlive.hytale.infrastructure.update.UpdateCheckService;
 import lombok.Getter;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -43,6 +44,9 @@ public class Main extends JavaPlugin {
     @Inject
     private RoleSyncService roleSyncService;
 
+    @Inject
+    private UpdateCheckService updateCheckService;
+
     public Main(@Nonnull JavaPluginInit init) {
         super(init);
 
@@ -53,6 +57,7 @@ public class Main extends JavaPlugin {
     protected void setup() {
         try {
             INSTANCE = this;
+            migrateLegacyDataDirectory();
 
             this.config.load().join();
             this.config.save().join();
@@ -80,7 +85,8 @@ public class Main extends JavaPlugin {
             getCommandRegistry().registerCommand(injectorInstance.getInstance(DiscordCommand.class));
             getCommandRegistry().registerCommand(new OuihebergCommand());
 
-            getLogger().atInfo().log("Hytale Discord Plugin initialisé!");
+            getLogger().atInfo().log("Plugin Dyskale initialisé!");
+            updateCheckService.start();
 
             if (!discordBot.start()) {
                 getLogger().atWarning().log("Le bot Discord n'a pas pu démarrer. Vérifiez votre configuration.");
@@ -110,8 +116,27 @@ public class Main extends JavaPlugin {
             linkService.cleanExpiredCodes();
             linkService.shutdown();
         }
+        if (updateCheckService != null) {
+            updateCheckService.shutdown();
+        }
         getLogger().atInfo().log("Plugin arrêté.");
 
         this.config.save().join();
+    }
+
+    private void migrateLegacyDataDirectory() {
+        var currentDirectory = getDataDirectory();
+        var legacyDirectory = currentDirectory.getParent().resolve("com.lukienlive_DiscordLink");
+
+        if (!java.nio.file.Files.exists(legacyDirectory) || java.nio.file.Files.exists(currentDirectory)) {
+            return;
+        }
+
+        try {
+            java.nio.file.Files.move(legacyDirectory, currentDirectory);
+            getLogger().atInfo().log("Ancienne configuration DiscordLink migrée vers Dyskale.");
+        } catch (java.io.IOException e) {
+            getLogger().atWarning().log("Impossible de migrer l'ancienne configuration DiscordLink: " + e.getMessage());
+        }
     }
 }

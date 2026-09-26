@@ -89,8 +89,11 @@ public class HytaleLoggerBridge {
             return;
         }
 
-        // Process all pending logs
         for (LogRecord record : logBuffer) {
+            if (!logBuffer.remove(record)) {
+                continue;
+            }
+
             try {
                 LogEntry entry = convertToLogEntry(record);
                 captureService.processLog(entry);
@@ -100,8 +103,6 @@ public class HytaleLoggerBridge {
             }
         }
 
-        // Clear processed entries
-        logBuffer.clear();
     }
 
     /**

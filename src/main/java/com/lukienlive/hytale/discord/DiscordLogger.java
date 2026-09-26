@@ -100,7 +100,7 @@ public class DiscordLogger {
             logger.info("   - Handlers actifs: " + captureService.getActiveHandlerCount());
             
             // Send a test message to Discord
-            info("🚀 Plugin DiscordLink actif - Logs console maintenant disponibles sur Discord");
+            info("🚀 Plugin Dyskale actif - Logs console maintenant disponibles sur Discord");
             
         } catch (Exception e) {
             logger.severe("❌ Erreur lors de l'installation du système de logging: " + e.getMessage());
