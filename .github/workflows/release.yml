@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Java 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '25'
@@ -32,7 +32,7 @@ jobs:
           }
 
       - name: Build release jar
-        run: ./gradlew shadowJar -Phytale.useMaven=true --no-daemon
+        run: bash ./gradlew shadowJar "-Phytale.useMaven=true" --no-daemon
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
