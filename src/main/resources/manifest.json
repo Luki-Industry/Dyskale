@@ -1,7 +1,7 @@
 {
   "Group": "LukiEnLive",
   "Name": "Dyskale",
-  "Version": "1.0.0",
+  "Version": "1.0.1",
   "Description": "Plugin Hytale pour connecter Discord, les joueurs et les outils serveur",
   "Website": "https://github.com/Luki-Industry/Dyskale",
   "Main": "com.lukienlive.hytale.Main",
