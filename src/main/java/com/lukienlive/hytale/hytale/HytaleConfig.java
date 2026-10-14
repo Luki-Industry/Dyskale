@@ -40,6 +40,11 @@ public class HytaleConfig {
         }
     };
 
+    @SuppressWarnings("unchecked")
+    private static KeyedCodec<Object> createKeyedCodec(String key, Object defaultValue) {
+        return new KeyedCodec<>(key, (Codec<Object>) createCodec(defaultValue));
+    }
+
     static {
         BuilderCodec.Builder<HytaleConfig> codec = BuilderCodec.builder(HytaleConfig.class, HytaleConfig::new);
 
@@ -47,7 +52,7 @@ public class HytaleConfig {
             String key = entry.getKey();
             Object defaultValue = entry.getValue();
 
-            var keyedCodec = new KeyedCodec<Object>(key, (Codec<Object>) createCodec(defaultValue));
+            var keyedCodec = createKeyedCodec(key, defaultValue);
             codec.append(keyedCodec,
                     (config, newValue) -> {
                         config.values.put(key, newValue);

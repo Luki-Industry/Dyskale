@@ -147,6 +147,10 @@ tasks.register('printHytaleServerInfo') {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += [
+        "-Xlint:deprecation",
+        "-Xlint:unchecked"
+    ]
     options.encoding = 'UTF-8'
     dependsOn 'setupHytaleApi'
 }

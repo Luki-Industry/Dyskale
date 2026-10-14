@@ -172,7 +172,7 @@ public class HytaleLoggerBridge {
     @Nonnull
     private String getThreadName(@Nonnull LogRecord record) {
         // Hytale doesn't set thread name in LogRecord, use thread ID
-        long threadId = record.getThreadID();
+        long threadId = record.getLongThreadID();
         return threadId >= 0 ? "Thread-" + threadId : "Unknown";
     }
 

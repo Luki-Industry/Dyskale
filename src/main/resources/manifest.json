@@ -16,7 +16,7 @@
       "Url": "https://sorax5.github.io/"
     }
   ],
-  "ServerVersion": "=0.6.8",
+  "ServerVersion": "=0.7.1",
   "Dependencies": {
     "LuckPerms:LuckPerms": ">=1.0.0"
   },
